@@ -19,57 +19,58 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/logs")
 public class LogController {
 
-  private final LogService logService;
+    private final LogService logService;
 
-  public LogController(LogService logService) {
-    this.logService = logService;
-  }
-
-  /**
-   * Upload a whole log file. Expects multipart/form-data with a "file" part.
-   * Returns the stored filename (may be altered to avoid collisions).
-   */
-  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<?> uploadLogFile(@RequestParam("file") MultipartFile file) {
-    if (file == null || file.isEmpty()) {
-      return new ResponseEntity<>("No file provided.", HttpStatus.BAD_REQUEST);
+    public LogController(LogService logService) {
+        this.logService = logService;
     }
 
-    try {
-      String stored = logService.saveUploadedFile(file);
-      return new ResponseEntity<>("Stored as: " + stored, HttpStatus.OK);
-    } catch (IOException e) {
-      System.err.println(e.getMessage());
-      return new ResponseEntity<>("Failed to store uploaded file.", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
+    /**
+     * Upload a whole log file. Expects multipart/form-data with a "file" part.
+     * Returns the stored filename (may be altered to avoid collisions).
+     */
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadLogFile(@RequestParam("file") MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return new ResponseEntity<>("No file provided.", HttpStatus.BAD_REQUEST);
+        }
 
-  /**
-   * (Optional) Accept plain text body and store as a new log file named by timestamp.
-   */
-  @PostMapping(consumes = MediaType.TEXT_PLAIN_VALUE, path = "/raw")
-  public ResponseEntity<?> receiveRawLog(@RequestBody String body) {
-    try {
-      String filename = logService.saveRawAsFile(body);
-      return new ResponseEntity<>("Stored as: " + filename, HttpStatus.OK);
-    } catch (IOException e) {
-      System.err.println(e.getMessage());
-      return new ResponseEntity<>("Failed to store log.", HttpStatus.INTERNAL_SERVER_ERROR);
+        try {
+            String stored = logService.saveUploadedFile(file);
+            return new ResponseEntity<>("Stored as: " + stored, HttpStatus.OK);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            return new ResponseEntity<>("Failed to store uploaded file.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-  }
 
-  @GetMapping
-  public ResponseEntity<List<String>> listLogs() {
-    return new ResponseEntity<>(logService.listLogFiles(), HttpStatus.OK);
-  }
-
-  @GetMapping(path = "/{filename}")
-  public ResponseEntity<?> getLog(@PathVariable String filename) {
-    try {
-      String content = logService.readLogFile(filename);
-      return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body(content);
-    } catch (IOException e) {
-      return new ResponseEntity<>("Log not found.", HttpStatus.NOT_FOUND);
+    /**
+     * (Optional) Accept plain text body and store as a new log file named by
+     * timestamp.
+     */
+    @PostMapping(consumes = MediaType.TEXT_PLAIN_VALUE, path = "/raw")
+    public ResponseEntity<?> receiveRawLog(@RequestBody String body) {
+        try {
+            String filename = logService.saveRawAsFile(body);
+            return new ResponseEntity<>("Stored as: " + filename, HttpStatus.OK);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            return new ResponseEntity<>("Failed to store log.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-  }
+
+    @GetMapping
+    public ResponseEntity<List<String>> listLogs() {
+        return new ResponseEntity<>(logService.listLogFiles(), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/{filename}")
+    public ResponseEntity<?> getLog(@PathVariable String filename) {
+        try {
+            String content = logService.readLogFile(filename);
+            return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body(content);
+        } catch (IOException e) {
+            return new ResponseEntity<>("Log not found.", HttpStatus.NOT_FOUND);
+        }
+    }
 }
