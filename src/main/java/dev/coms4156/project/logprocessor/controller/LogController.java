@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/logs")
@@ -23,11 +25,33 @@ public class LogController {
     this.logService = logService;
   }
 
-  @PostMapping(consumes = MediaType.TEXT_PLAIN_VALUE)
-  public ResponseEntity<?> receiveLog(@RequestBody String body) {
+  /**
+   * Upload a whole log file. Expects multipart/form-data with a "file" part.
+   * Returns the stored filename (may be altered to avoid collisions).
+   */
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<?> uploadLogFile(@RequestParam("file") MultipartFile file) {
+    if (file == null || file.isEmpty()) {
+      return new ResponseEntity<>("No file provided.", HttpStatus.BAD_REQUEST);
+    }
+
     try {
-      logService.appendToDefaultLog(body.trim());
-      return new ResponseEntity<>("Log stored.", HttpStatus.OK);
+      String stored = logService.saveUploadedFile(file);
+      return new ResponseEntity<>("Stored as: " + stored, HttpStatus.OK);
+    } catch (IOException e) {
+      System.err.println(e.getMessage());
+      return new ResponseEntity<>("Failed to store uploaded file.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * (Optional) Accept plain text body and store as a new log file named by timestamp.
+   */
+  @PostMapping(consumes = MediaType.TEXT_PLAIN_VALUE, path = "/raw")
+  public ResponseEntity<?> receiveRawLog(@RequestBody String body) {
+    try {
+      String filename = logService.saveRawAsFile(body);
+      return new ResponseEntity<>("Stored as: " + filename, HttpStatus.OK);
     } catch (IOException e) {
       System.err.println(e.getMessage());
       return new ResponseEntity<>("Failed to store log.", HttpStatus.INTERNAL_SERVER_ERROR);
