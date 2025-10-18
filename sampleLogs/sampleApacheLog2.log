@@ -1,0 +1,3 @@
+66.26.8.19 - - [17/Oct/2025:23:48:57 ] "PUT /images/logo.png HTTP/1.1" 404 1051 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+56.194.242.123 - - [17/Oct/2025:23:48:58 ] "DELETE /users HTTP/1.1" 400 2483 "-" "curl/8.0.1"
+188.0.183.32 - - [17/Oct/2025:23:48:59 ] "DELETE /login HTTP/1.1" 500 659 "-" "Mozilla/5.0 (X11; Linux x86_64)"
