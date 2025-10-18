@@ -1,10 +1,10 @@
-package dev.coms4156.project.individualproject;
+package dev.coms4156.project.logprocessor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import dev.coms4156.project.individualproject.model.Book;
-import dev.coms4156.project.individualproject.service.MockApiService;
+import dev.coms4156.project.logprocessor.model.Book;
+import dev.coms4156.project.logprocessor.service.MockApiService;
 import org.junit.jupiter.api.Test;
 
 /**

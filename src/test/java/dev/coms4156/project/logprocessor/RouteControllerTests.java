@@ -1,11 +1,11 @@
-package dev.coms4156.project.individualproject;
+package dev.coms4156.project.logprocessor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 
-import dev.coms4156.project.individualproject.model.Book;
-import dev.coms4156.project.individualproject.service.MockApiService;
+import dev.coms4156.project.logprocessor.model.Book;
+import dev.coms4156.project.logprocessor.service.MockApiService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;

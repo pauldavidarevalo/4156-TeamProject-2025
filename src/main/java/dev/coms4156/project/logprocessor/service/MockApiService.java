@@ -1,8 +1,8 @@
-package dev.coms4156.project.individualproject.service;
+package dev.coms4156.project.logprocessor.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.coms4156.project.individualproject.model.Book;
+import dev.coms4156.project.logprocessor.model.Book;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;

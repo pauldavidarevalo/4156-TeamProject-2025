@@ -1,7 +1,7 @@
-package dev.coms4156.project.individualproject.controller;
+package dev.coms4156.project.logprocessor.controller;
 
-import dev.coms4156.project.individualproject.model.Book;
-import dev.coms4156.project.individualproject.service.MockApiService;
+import dev.coms4156.project.logprocessor.model.Book;
+import dev.coms4156.project.logprocessor.service.MockApiService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
