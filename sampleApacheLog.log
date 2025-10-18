@@ -1,0 +1,5 @@
+224.249.206.42 - - [17/Oct/2025:23:24:27 ] "POST /images/logo.png HTTP/1.1" 500 1683 "-" "Mozilla/5.0 (X11; Linux x86_64)"
+107.240.166.107 - - [17/Oct/2025:23:24:28 ] "POST /login HTTP/1.1" 200 4596 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+179.135.221.10 - - [17/Oct/2025:23:24:30 ] "GET /api/data HTTP/1.1" 200 1753 "-" "Mozilla/5.0 (X11; Linux x86_64)"
+87.251.80.211 - - [17/Oct/2025:23:24:30 ] "DELETE /images/logo.png HTTP/1.1" 400 1477 "-" "PostmanRuntime/7.32.0"
+155.93.9.30 - - [17/Oct/2025:23:24:31 ] "GET / HTTP/1.1" 200 2030 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
