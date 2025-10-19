@@ -9,9 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,8 +45,7 @@ public class LogController {
     }
 
     /**
-     * (Optional) Accept plain text body and store as a new log file named by
-     * timestamp.
+     * Accept plain text body and store as a new log file named by timestamp.
      */
     @PostMapping(consumes = MediaType.TEXT_PLAIN_VALUE, path = "/raw")
     public ResponseEntity<?> receiveRawLog(@RequestBody String body) {
@@ -60,8 +59,13 @@ public class LogController {
     }
 
     @GetMapping
-    public ResponseEntity<List<String>> listLogs() {
-        return new ResponseEntity<>(logService.listLogFiles(), HttpStatus.OK);
+    public ResponseEntity<?> listLogs() {
+        try {
+            List<String> files = logService.listLogFiles();
+            return new ResponseEntity<>(files, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<>("Logs directory not found.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping(path = "/{filename}")
