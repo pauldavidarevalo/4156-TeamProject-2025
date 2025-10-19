@@ -21,7 +21,5 @@ jobs:
           distribution: 'temurin'
       - name: Maven Package
         run: mvn -B clean package -DskipTests
-        working-directory: IndividualProject
       - name: Maven Verify
         run: mvn -B clean verify
-        working-directory: IndividualProject
