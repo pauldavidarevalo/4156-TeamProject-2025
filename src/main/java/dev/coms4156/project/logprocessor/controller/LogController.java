@@ -9,14 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/logs")
 public class LogController {
 
     private final LogService logService;
@@ -29,8 +27,8 @@ public class LogController {
      * Upload a whole log file. Expects multipart/form-data with a "file" part.
      * Returns the stored filename (may be altered to avoid collisions).
      */
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadLogFile(@RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/uploadFile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadLogFile(@RequestParam("file") MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return new ResponseEntity<>("No file provided.", HttpStatus.BAD_REQUEST);
         }
@@ -47,10 +45,10 @@ public class LogController {
     /**
      * Accept plain text body and store as a new log file named by timestamp.
      */
-    @PostMapping(consumes = MediaType.TEXT_PLAIN_VALUE, path = "/raw")
-    public ResponseEntity<?> receiveRawLog(@RequestBody String body) {
+    @PostMapping(value = "/uploadText", consumes = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> receiveRawLog(@RequestBody String rawLog) {
         try {
-            String filename = logService.saveRawAsFile(body);
+            String filename = logService.saveRawAsFile(rawLog);
             return new ResponseEntity<>("Stored as: " + filename, HttpStatus.OK);
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -58,7 +56,7 @@ public class LogController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/logs")
     public ResponseEntity<?> listLogs() {
         try {
             List<String> files = logService.listLogFiles();
@@ -68,7 +66,7 @@ public class LogController {
         }
     }
 
-    @GetMapping(path = "/{filename}")
+    @GetMapping(path = "/logs/{filename}")
     public ResponseEntity<?> getLog(@PathVariable String filename) {
         try {
             String content = logService.readLogFile(filename);
