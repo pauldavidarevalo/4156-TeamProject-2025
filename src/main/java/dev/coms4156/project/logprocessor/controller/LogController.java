@@ -25,7 +25,7 @@ public class LogController {
 
     /**
      * Upload a whole log file. Expects multipart/form-data with a "file" part.
-     * Returns the stored filename (may be altered to avoid collisions).
+     * Returns the stored filename.
      */
     @PostMapping(value = "/uploadFile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadLogFile(@RequestParam("file") MultipartFile file) {
@@ -56,6 +56,9 @@ public class LogController {
         }
     }
 
+    /**
+     * List all stored log files.
+     */
     @GetMapping("/logs")
     public ResponseEntity<?> listLogs() {
         try {
@@ -66,6 +69,9 @@ public class LogController {
         }
     }
 
+    /**
+     * Get the content of a specific log file.
+     */
     @GetMapping(path = "/logs/{filename}")
     public ResponseEntity<?> getLog(@PathVariable String filename) {
         try {
