@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
+@RequestMapping("/logs")
 public class LogController {
 
     private final LogService logService;
@@ -79,6 +81,18 @@ public class LogController {
             return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body(content);
         } catch (IOException e) {
             return new ResponseEntity<>("Log not found.", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    //For upload using new Log Entry class and new LogService logic
+    @PostMapping("/upload")
+    public String uploadLog(@RequestParam("clientId") String clientId, @RequestParam("file") MultipartFile file) {
+        try {
+            logService.processLogFile(file.getInputStream(), clientId);
+            return "Log file processed successfully.";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error processing log file: " + e.getMessage();
         }
     }
 }
