@@ -1,0 +1,40 @@
+{
+  "info": {
+    "name": "Log Analytics Service",
+    "_postman_id": "12345678-abcd-1234-abcd-1234567890ab",
+    "description": "Collection for testing the Log Analytics Service endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Upload Log File",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "/path/to/your/logfile.log"
+            },
+            {
+              "key": "clientId",
+              "type": "text",
+              "value": "client123"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/logs/upload",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["logs", "upload"]
+        }
+      },
+      "response": []
+    }
+  ]
+}
