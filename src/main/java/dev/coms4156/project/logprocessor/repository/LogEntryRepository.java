@@ -6,6 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
+/**
+ * Interface for communicating with the database. Jpa framework allows for some default
+ * queries without writing SQL.
+ */
 public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
 
     @Query("SELECT l.endpoint, COUNT(l) FROM LogEntry l GROUP BY l.endpoint ORDER BY COUNT(l) DESC")

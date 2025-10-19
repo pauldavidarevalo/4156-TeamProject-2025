@@ -15,10 +15,10 @@ public class LogController {
     }
 
 
-    /**For upload using new Log Entry class and new LogService logic
+    /**For client log upload into service.
      * /
-     * @param clientId
-     * @param file
+     * @param clientId ID input by the client to differentiate rows in the database
+     * @param file apache log file in simple format to be parsed
      * @return confirmation message
      */
     @PostMapping("/upload")

@@ -29,6 +29,14 @@ public class LogService {
             "^(\\S+) \\S+ \\S+ \\[(.+?)\\] \"(\\S+) (\\S+) \\S+\" (\\d{3}) (\\d+|-)"
     );
 
+    /**
+     * Parses each log file extracting each component and creates a new LogEntry object.
+     * That LogEntry is saved into a LogEntryRepository which transfers its data into the
+     * database.
+     * @param fileStream input stream of the file given by the client
+     * @param clientId ID input by the client
+     * @throws Exception thrown if input stream cannot be read
+     */
     public void processLogFile(InputStream fileStream, String clientId) throws Exception {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream))) {
             String line;
@@ -52,6 +60,10 @@ public class LogService {
         }
     }
 
+    /**
+     * Sample method analytics to be replaced by security endpoint features
+     * @return object
+     */
     public Object getTopEndpoints() {
         return repo.findTopEndpoints();
     }

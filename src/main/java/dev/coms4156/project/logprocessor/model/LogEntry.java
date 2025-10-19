@@ -20,7 +20,8 @@ public class LogEntry {
 
     public LogEntry() {}
 
-    public LogEntry(String clientId, String ipAddress, String method, String endpoint, int statusCode, long responseSize, LocalDateTime timestamp) {
+    public LogEntry(String clientId, String ipAddress, String method, String endpoint,
+                    int statusCode, long responseSize, LocalDateTime timestamp) {
         this.clientId = clientId;
         this.ipAddress = ipAddress;
         this.method = method;
@@ -30,7 +31,7 @@ public class LogEntry {
         this.timestamp = timestamp;
     }
 
-    // getters and setters
+    // Getters. Evaluate if these are needed later on
     public Long getId() { return id; }
     public String getIpAddress() { return ipAddress; }
     public String getMethod() { return method; }
