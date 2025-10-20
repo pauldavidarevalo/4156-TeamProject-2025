@@ -1,0 +1,98 @@
+{
+	"info": {
+		"_postman_id": "c4751713-b753-4397-a051-dd6c03ae470e",
+		"name": "Log Analytics Service",
+		"description": "Collection for testing the Log Analytics Service endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48308900"
+	},
+	"item": [
+		{
+			"name": "Upload Log File",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "xdZdOhBPu/sampleApacheSimple.log"
+						},
+						{
+							"key": "clientId",
+							"value": "client123",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/logs/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"logs",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/statusCodeCounts good clientId",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/logs/statusCodeCounts?clientId=client123",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"logs",
+						"statusCodeCounts"
+					],
+					"query": [
+						{
+							"key": "clientId",
+							"value": "client123"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/statusCodeCount bad clientId",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/logs/statusCodeCounts?clientId=badClient",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"logs",
+						"statusCodeCounts"
+					],
+					"query": [
+						{
+							"key": "clientId",
+							"value": "badClient"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

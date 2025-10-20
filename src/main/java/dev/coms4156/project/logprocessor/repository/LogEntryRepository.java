@@ -14,4 +14,10 @@ public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
 
     @Query("SELECT l.endpoint, COUNT(l) FROM LogEntry l GROUP BY l.endpoint ORDER BY COUNT(l) DESC")
     List<Object[]> findTopEndpoints();
+
+    @Query("SELECT l.statusCode, COUNT(l) FROM LogEntry l WHERE l.clientId = :clientId GROUP BY l.statusCode")
+    List<Object[]> countStatusCodesByClientId(String clientId);
+
+    // Check whether any entries exist for a given clientId
+    boolean existsByClientId(String clientId);
 }

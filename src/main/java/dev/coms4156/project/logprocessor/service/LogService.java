@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 
@@ -66,6 +69,28 @@ public class LogService {
      */
     public Object getTopEndpoints() {
         return repo.findTopEndpoints();
+    }
+
+    /**
+     * Count status codes for entries matching the provided clientId.
+     * Returns a mapping from status code to count.
+     */
+    public Map<Integer, Integer> countStatusCodesForClient(String clientId) {
+        Map<Integer, Integer> result = new HashMap<>();
+        List<Object[]> rows = repo.countStatusCodesByClientId(clientId);
+        for (Object[] row : rows) {
+            Integer status = (Integer) row[0];
+            Long count = (Long) row[1];
+            result.put(status, count.intValue());
+        }
+        return result;
+    }
+
+    /**
+     * Returns true if at least one LogEntry exists for the provided clientId.
+     */
+    public boolean clientExists(String clientId) {
+        return repo.existsByClientId(clientId);
     }
 
 }
