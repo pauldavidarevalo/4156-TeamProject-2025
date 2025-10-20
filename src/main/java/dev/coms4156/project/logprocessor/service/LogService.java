@@ -86,4 +86,11 @@ public class LogService {
         return result;
     }
 
+    /**
+     * Returns true if at least one LogEntry exists for the provided clientId.
+     */
+    public boolean clientExists(String clientId) {
+        return repo.existsByClientId(clientId);
+    }
+
 }
