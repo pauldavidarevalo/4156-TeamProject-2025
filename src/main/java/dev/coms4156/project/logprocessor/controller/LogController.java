@@ -4,6 +4,8 @@ import dev.coms4156.project.logprocessor.service.LogService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/logs")
 public class LogController {
@@ -13,7 +15,6 @@ public class LogController {
     public LogController(LogService logService) {
         this.logService = logService;
     }
-
 
     /**For client log upload into service.
      * /
@@ -30,5 +31,14 @@ public class LogController {
             e.printStackTrace();
             return "Error processing log file: " + e.getMessage();
         }
+    }
+
+    /**
+     * @param clientId ID input by the client to filter status codes.
+     * Returns counts of status codes for the given clientId as a map.
+     */
+    @GetMapping("/statusCodeCounts")
+    public Map<Integer, Integer> getStatusCodeCounts(@RequestParam("clientId") String clientId) {
+        return logService.countStatusCodesForClient(clientId);
     }
 }
