@@ -21,24 +21,24 @@ public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
     // Check whether any entries exist for a given clientId
     boolean existsByClientId(String clientId);
 
-  // Count total requests by hour for a specific client
   @Query(value = """
-    SELECT strftime('%Y-%m-%d %H:00:00', timestamp) AS hour, COUNT(*) 
-    FROM log_entries 
-    WHERE client_id = :clientId 
-    GROUP BY hour 
-    ORDER BY hour
-    """, nativeQuery = true)
+  SELECT strftime('%Y-%m-%d %H:00:00', timestamp / 1000, 'unixepoch') AS hour,
+         COUNT(*) 
+  FROM log_entries 
+  WHERE client_id = :clientId 
+  GROUP BY hour 
+  ORDER BY hour
+  """, nativeQuery = true)
   List<Object[]> countRequestsByHour(String clientId);
 
-  // Count 4xx/5xx errors by hour (system-wide)
+
   @Query(value = """
-    SELECT strftime('%Y-%m-%d %H:00:00', timestamp) AS hour,
-           SUM(CASE WHEN status_code BETWEEN 400 AND 499 THEN 1 ELSE 0 END) AS count_4xx,
-           SUM(CASE WHEN status_code BETWEEN 500 AND 599 THEN 1 ELSE 0 END) AS count_5xx
-    FROM log_entries 
-    GROUP BY hour 
-    ORDER BY hour
-    """, nativeQuery = true)
+  SELECT strftime('%Y-%m-%d %H:00:00', timestamp / 1000, 'unixepoch') AS hour,
+         SUM(CASE WHEN status_code BETWEEN 400 AND 499 THEN 1 ELSE 0 END) AS count_4xx,
+         SUM(CASE WHEN status_code BETWEEN 500 AND 599 THEN 1 ELSE 0 END) AS count_5xx
+  FROM log_entries 
+  GROUP BY hour 
+  ORDER BY hour
+  """, nativeQuery = true)
   List<Object[]> countErrorCodesByHour();
 }

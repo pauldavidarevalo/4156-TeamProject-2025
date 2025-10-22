@@ -107,7 +107,8 @@ public class LogService {
     Map<String, Integer> result = new LinkedHashMap<>();
     for (Object[] row : rows) {
       String hour = (String) row[0];
-      Long count = (Long) row[1];
+      if (hour == null) continue; // optional, just to be safe
+      Number count = (Number) row[1];  // ✅ Works for Integer or Long
       result.put(hour, count.intValue());
     }
     return result;
@@ -123,16 +124,22 @@ public class LogService {
   public Map<String, Map<String, Integer>> getErrorCountsByHour() {
     List<Object[]> rows = repo.countErrorCodesByHour();
     Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
+
     for (Object[] row : rows) {
       String hour = (String) row[0];
+      if (hour == null) continue; // ✅ Skip null hours to avoid JSON null key crash
+
       Long count4xx = ((Number) row[1]).longValue();
       Long count5xx = ((Number) row[2]).longValue();
+
       Map<String, Integer> inner = new HashMap<>();
       inner.put("4xx", count4xx.intValue());
       inner.put("5xx", count5xx.intValue());
       result.put(hour, inner);
     }
+
     return result;
   }
+
 
 }
