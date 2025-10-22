@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.HashMap;
@@ -92,5 +93,46 @@ public class LogService {
     public boolean clientExists(String clientId) {
         return repo.existsByClientId(clientId);
     }
+
+  /**
+   * Returns a mapping of hour → request count for a given clientId.
+   * Example:
+   * {
+   *   "2025-10-20T13:00:00": 15,
+   *   "2025-10-20T14:00:00": 28
+   * }
+   */
+  public Map<String, Integer> getRequestCountsByHour(String clientId) {
+    List<Object[]> rows = repo.countRequestsByHour(clientId);
+    Map<String, Integer> result = new LinkedHashMap<>();
+    for (Object[] row : rows) {
+      String hour = (String) row[0];
+      Long count = (Long) row[1];
+      result.put(hour, count.intValue());
+    }
+    return result;
+  }
+
+  /**
+   * Returns a mapping of hour → {4xx, 5xx} error counts system-wide.
+   * Example:
+   * {
+   *   "2025-10-20T13:00:00": {"4xx": 3, "5xx": 1}
+   * }
+   */
+  public Map<String, Map<String, Integer>> getErrorCountsByHour() {
+    List<Object[]> rows = repo.countErrorCodesByHour();
+    Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
+    for (Object[] row : rows) {
+      String hour = (String) row[0];
+      Long count4xx = ((Number) row[1]).longValue();
+      Long count5xx = ((Number) row[2]).longValue();
+      Map<String, Integer> inner = new HashMap<>();
+      inner.put("4xx", count4xx.intValue());
+      inner.put("5xx", count5xx.intValue());
+      result.put(hour, inner);
+    }
+    return result;
+  }
 
 }
