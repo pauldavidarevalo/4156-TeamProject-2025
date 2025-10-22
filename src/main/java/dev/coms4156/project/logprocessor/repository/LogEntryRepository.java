@@ -41,4 +41,16 @@ public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
   ORDER BY hour
   """, nativeQuery = true)
   List<Object[]> countErrorCodesByHour();
+
+  @Query(value = """
+  SELECT ip_address,
+         strftime('%Y-%m-%d %H:00:00', timestamp / 1000, 'unixepoch') AS hour,
+         COUNT(*) AS auth_errors
+  FROM log_entries
+  WHERE status_code IN (401, 403)
+  GROUP BY ip_address, hour
+  HAVING COUNT(*) >= :threshold
+  ORDER BY hour, auth_errors DESC
+  """, nativeQuery = true)
+List<Object[]> findIpsWithManyAuthErrors(int threshold);
 }
