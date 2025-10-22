@@ -142,20 +142,20 @@ public class LogService {
     return result;
   }
 
-     public List<Map<String, Object>> getIpsWithManyAuthErrors() {
-        int threshold = 5;
-        List<Object[]> results = repo.findIpsWithManyAuthErrors(threshold);
+	public List<Map<String, Object>> getIpsWithManyAuthErrors() {
+		int threshold = 5;
+		List<Object[]> results = repo.findIpsWithManyAuthErrors(threshold);
 
-        List<Map<String, Object>> response = new ArrayList<>();
-        for (Object[] row : results) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("ipAddress", row[0]);
-            map.put("hourWindow", row[1]);
-            map.put("count", row[2]);
-            response.add(map);
-        }
-        return response;
-    }
+		List<Map<String, Object>> response = new ArrayList<>();
+		for (Object[] row : results) {
+				Map<String, Object> map = new HashMap<>();
+				map.put("ipAddress", row[0]);
+				map.put("hourWindow", row[1]);
+				map.put("count", row[2]);
+				response.add(map);
+		}
+		return response;
+	}
 
 
 }
