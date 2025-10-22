@@ -47,10 +47,5 @@ public class AnalyticsController {
     return logService.getErrorCountsByHour();
   }
 
-    @GetMapping("/suspicious-ips")
-    public Object getSuspiciousIps() {
-        return logService.getIpsWithManyAuthErrors();
-    }
-
 }
 
