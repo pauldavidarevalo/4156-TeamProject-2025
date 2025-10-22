@@ -90,4 +90,44 @@ class LogEntryRepositoryTest {
     repo.deleteAll();
     assertThat(repo.count()).isZero();
   }
+
+  @Test
+  @DisplayName("countRequestsByHour should return hourly request counts for a client")
+  void testCountRequestsByHour() {
+    List<Object[]> results = repo.countRequestsByHour("clientA");
+
+    assertThat(results).isNotEmpty();
+    // Each element = [hourString, count]
+    Object[] firstRow = results.get(0);
+    assertThat(firstRow[0]).isInstanceOf(String.class);
+    assertThat(firstRow[1]).isInstanceOf(Long.class);
+
+    long total = results.stream()
+            .mapToLong(r -> (Long) r[1])
+            .sum();
+    assertThat(total).isEqualTo(3); // clientA made 3 requests
+  }
+
+  @Test
+  @DisplayName("countErrorCodesByHour should return hourly 4xx and 5xx error counts")
+  void testCountErrorCodesByHour() {
+    List<Object[]> results = repo.countErrorCodesByHour();
+
+    assertThat(results).isNotEmpty();
+    // Each element = [hourString, count4xx, count5xx]
+    Object[] firstRow = results.get(0);
+    assertThat(firstRow[0]).isInstanceOf(String.class);
+    assertThat(firstRow[1]).isInstanceOf(Long.class);
+    assertThat(firstRow[2]).isInstanceOf(Long.class);
+
+    long total4xx = results.stream()
+            .mapToLong(r -> (Long) r[1])
+            .sum();
+    long total5xx = results.stream()
+            .mapToLong(r -> (Long) r[2])
+            .sum();
+
+    assertThat(total4xx).isEqualTo(1); // one 404 error
+    assertThat(total5xx).isZero();     // no 5xx errors
+  }
 }
