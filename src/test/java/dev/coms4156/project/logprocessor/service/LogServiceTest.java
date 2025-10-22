@@ -1,17 +1,25 @@
 package dev.coms4156.project.logprocessor.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import dev.coms4156.project.logprocessor.model.LogEntry;
 import dev.coms4156.project.logprocessor.repository.LogEntryRepository;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class LogServiceTest {
 
@@ -69,7 +77,7 @@ class LogServiceTest {
 
   @Test
   void testProcessLogFileParsesAndSaves() throws Exception {
-    String logLine = "127.0.0.1 - - [12/Oct/2025:06:25:24 +0000] \"GET /home HTTP/1.1\" 200 512";
+    String logLine = "XXX.0.0.1 - - [12/Oct/2025:06:25:24 +0000] \"GET /home HTTP/1.1\" 200 512";
     InputStream stream = new ByteArrayInputStream(logLine.getBytes());
 
     service.processLogFile(stream, "client123");
@@ -79,7 +87,7 @@ class LogServiceTest {
 
     LogEntry entry = captor.getValue();
     assertEquals("client123", entry.getClientId());
-    assertEquals("127.0.0.1", entry.getIpAddress());
+    assertEquals("XXX.0.0.1", entry.getIpAddress());
     assertEquals("GET", entry.getMethod());
     assertEquals("/home", entry.getEndpoint());
     assertEquals(200, entry.getStatusCode());

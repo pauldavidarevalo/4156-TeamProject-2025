@@ -1,17 +1,16 @@
 package dev.coms4156.project.logprocessor.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import dev.coms4156.project.logprocessor.model.LogEntry;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -20,17 +19,19 @@ class LogEntryRepositoryTest {
   @Autowired
   private LogEntryRepository repo;
 
-  private LogEntry e1, e2, e3, e4;
-
   @BeforeEach
   void setUp() {
     repo.deleteAll();
 
     // Build entities (id will auto-generate)
-    e1 = new LogEntry("clientA", "10.0.0.1", "GET", "/home", 200, 500L, LocalDateTime.now());
-    e2 = new LogEntry("clientA", "10.0.0.2", "GET", "/home", 200, 300L, LocalDateTime.now());
-    e3 = new LogEntry("clientA", "10.0.0.3", "POST", "/upload", 404, 0L, LocalDateTime.now());
-    e4 = new LogEntry("clientB", "10.0.0.4", "GET", "/info", 200, 100L, LocalDateTime.now());
+    LogEntry e1 = new LogEntry("clientA",
+            "XX.0.0.1", "GET", "/home", 200, 500L, LocalDateTime.now());
+    LogEntry e2 = new LogEntry("clientA",
+            "XX.0.0.2", "GET", "/home", 200, 300L, LocalDateTime.now());
+    LogEntry e3 = new LogEntry("clientA",
+            "XX.0.0.3", "POST", "/upload", 404, 0L, LocalDateTime.now());
+    LogEntry e4 = new LogEntry("clientB",
+            "XX.0.0.4", "GET", "/info", 200, 100L, LocalDateTime.now());
 
     repo.saveAll(List.of(e1, e2, e3, e4));
   }
@@ -42,7 +43,7 @@ class LogEntryRepositoryTest {
 
     assertThat(results).isNotEmpty();
     assertThat(results.get(0)[0]).isEqualTo("/home");
-    assertThat(((Long) results.get(0)[1])).isEqualTo(2L);
+    assertThat((Long) results.get(0)[1]).isEqualTo(2L);
 
     // Ensure all endpoints are present
     assertThat(results.stream().map(r -> (String) r[0]))
