@@ -27,5 +27,25 @@ public class AnalyticsController {
     public Object getTopEndpoints() {
         return logService.getTopEndpoints();
     }
+
+  /**
+   * Returns hourly request counts for a specific client.
+   * Example:
+   *   GET /analytics/timeseries/requests/clientA
+   */
+  @GetMapping("/timeseries/requests/{clientId}")
+  public Object getRequestCountsByHour(@PathVariable String clientId) {
+    return logService.getRequestCountsByHour(clientId);
+  }
+
+  /**
+   * Returns hourly 4xx and 5xx error counts system-wide.
+   * Example:
+   *   GET /analytics/timeseries/error-counts
+   */
+  @GetMapping("/timeseries/error-counts")
+  public Object getErrorCountsByHour() {
+    return logService.getErrorCountsByHour();
+  }
 }
 
