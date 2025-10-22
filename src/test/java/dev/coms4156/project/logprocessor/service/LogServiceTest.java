@@ -123,4 +123,38 @@ class LogServiceTest {
     LogEntry entry = captor.getValue();
     assertEquals(0L, entry.getResponseSize()); // covers the “equals('-')” branch
   }
+
+  @Test
+  void testGetRequestCountsByHour() {
+    List<Object[]> mockRows = new ArrayList<>();
+    mockRows.add(new Object[]{"2025-10-20 13:00:00", 5L});
+    mockRows.add(new Object[]{"2025-10-20 14:00:00", 2L});
+
+    when(repo.countRequestsByHour("clientA")).thenReturn(mockRows);
+
+    Map<String, Integer> result = service.getRequestCountsByHour("clientA");
+
+    assertEquals(2, result.size());
+    assertEquals(5, result.get("2025-10-20 13:00:00"));
+    assertEquals(2, result.get("2025-10-20 14:00:00"));
+    verify(repo).countRequestsByHour("clientA");
+  }
+
+  @Test
+  void testGetErrorCountsByHour() {
+    List<Object[]> mockRows = new ArrayList<>();
+    mockRows.add(new Object[]{"2025-10-20 13:00:00", 3L, 1L});
+    mockRows.add(new Object[]{"2025-10-20 14:00:00", 2L, 0L});
+
+    when(repo.countErrorCodesByHour()).thenReturn(mockRows);
+
+    Map<String, Map<String, Integer>> result = service.getErrorCountsByHour();
+
+    assertEquals(2, result.size());
+    assertEquals(3, result.get("2025-10-20 13:00:00").get("4xx"));
+    assertEquals(1, result.get("2025-10-20 13:00:00").get("5xx"));
+    assertEquals(2, result.get("2025-10-20 14:00:00").get("4xx"));
+    assertEquals(0, result.get("2025-10-20 14:00:00").get("5xx"));
+    verify(repo).countErrorCodesByHour();
+  }
 }

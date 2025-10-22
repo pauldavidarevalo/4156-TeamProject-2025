@@ -1,16 +1,6 @@
 package dev.coms4156.project.logprocessor.controller;
 
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import dev.coms4156.project.logprocessor.service.LogService;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,6 +9,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.*;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AnalyticsController.class)
 @Import(AnalyticsControllerTest.MockConfig.class)
@@ -30,7 +26,7 @@ class AnalyticsControllerTest {
   @Autowired
   private LogService logService;
 
-  /** Modern Spring Boot 3.4+ mock configuration (replaces @MockBean). */
+  /** Modern Spring Boot 3.4+ mock configuration (replaces @MockBean) */
   static class MockConfig {
     @Bean
     LogService logService() {
@@ -44,9 +40,9 @@ class AnalyticsControllerTest {
     reset(logService);
   }
 
-  /** Retrieve top endpoints with normal response and populated data. */
+  /** Test normal response with populated data */
   @Test
-  void testGetTopEndpointsReturnsDataSuccessfully() throws Exception {
+  void testGetTopEndpoints_ReturnsDataSuccessfully() throws Exception {
     List<Object[]> mockData = new ArrayList<>();
     mockData.add(new Object[]{"endpoint1", 10L});
     mockData.add(new Object[]{"endpoint2", 5L});
@@ -60,9 +56,9 @@ class AnalyticsControllerTest {
     verify(logService, times(1)).getTopEndpoints();
   }
 
-  /** Service returns an empty list. */
+  /** Test when the service returns an empty list */
   @Test
-  void testGetTopEndpointsEmptyList() throws Exception {
+  void testGetTopEndpoints_EmptyList() throws Exception {
     when(logService.getTopEndpoints()).thenReturn(new ArrayList<>());
 
     mockMvc.perform(get("/analytics/top-endpoints"))
@@ -70,5 +66,43 @@ class AnalyticsControllerTest {
             .andExpect(content().json("[]"));
 
     verify(logService, times(1)).getTopEndpoints();
+  }
+
+  /** Test /analytics/timeseries/requests/{clientId} endpoint */
+  @Test
+  void testGetRequestCountsByHour_ReturnsDataSuccessfully() throws Exception {
+    Map<String, Integer> mockData = new LinkedHashMap<>();
+    mockData.put("2025-10-20 13:00:00", 5);
+    mockData.put("2025-10-20 14:00:00", 2);
+
+    when(logService.getRequestCountsByHour("clientA")).thenReturn(mockData);
+
+    mockMvc.perform(get("/analytics/timeseries/requests/clientA"))
+            .andExpect(status().isOk())
+            .andExpect(content().json("{\"2025-10-20 13:00:00\":5,\"2025-10-20 14:00:00\":2}"));
+
+    verify(logService, times(1)).getRequestCountsByHour("clientA");
+  }
+
+  /** Test /analytics/timeseries/error-counts endpoint */
+  @Test
+  void testGetErrorCountsByHour_ReturnsDataSuccessfully() throws Exception {
+    Map<String, Map<String, Integer>> mockData = new LinkedHashMap<>();
+    Map<String, Integer> hour1 = new HashMap<>();
+    hour1.put("4xx", 3);
+    hour1.put("5xx", 1);
+    Map<String, Integer> hour2 = new HashMap<>();
+    hour2.put("4xx", 2);
+    hour2.put("5xx", 0);
+    mockData.put("2025-10-20 13:00:00", hour1);
+    mockData.put("2025-10-20 14:00:00", hour2);
+
+    when(logService.getErrorCountsByHour()).thenReturn(mockData);
+
+    mockMvc.perform(get("/analytics/timeseries/error-counts"))
+            .andExpect(status().isOk())
+            .andExpect(content().json("{\"2025-10-20 13:00:00\":{\"4xx\":3,\"5xx\":1},\"2025-10-20 14:00:00\":{\"4xx\":2,\"5xx\":0}}"));
+
+    verify(logService, times(1)).getErrorCountsByHour();
   }
 }
