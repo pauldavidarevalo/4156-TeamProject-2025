@@ -42,9 +42,9 @@ public class AnalyticsController {
    * Example:
    *   GET /analytics/timeseries/error-counts
    */
-  @GetMapping("/timeseries/error-counts")
-  public Object getErrorCountsByHour() {
-    return logService.getErrorCountsByHour();
+  @GetMapping("/timeseries/error-counts/{clientId}")
+  public Object getErrorCountsByHour(@PathVariable String clientId) {
+    return logService.getErrorCountsByHour(clientId);
   }
 
 }

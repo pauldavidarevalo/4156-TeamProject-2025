@@ -123,8 +123,8 @@ public class LogService {
    *   "2025-10-20T13:00:00": {"4xx": 3, "5xx": 1}
    * }
    */
-  public Map<String, Map<String, Integer>> getErrorCountsByHour() {
-    List<Object[]> rows = repo.countErrorCodesByHour();
+  public Map<String, Map<String, Integer>> getErrorCountsByHour(String clientId) {
+    List<Object[]> rows = repo.countErrorCodesByHour(clientId);
     Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
 
     for (Object[] row : rows) {
@@ -151,9 +151,9 @@ public class LogService {
   *   {"ipAddress": "192.168.1.1", "hourWindow": "2025-10-20T13:00:00", "errorCount": 7}
   * ]
   */
-  public List<Map<String, Object>> getIpsWithManyAuthErrors() {
+  public List<Map<String, Object>> getIpsWithManyAuthErrors(String clientId) {
     int threshold = 5;
-    List<Object[]> results = repo.findIpsWithManyAuthErrors(threshold);
+    List<Object[]> results = repo.findIpsWithManyAuthErrors(threshold, clientId);
     return results.stream()
         .map(row -> Map.of(
             "ipAddress", row[0],
