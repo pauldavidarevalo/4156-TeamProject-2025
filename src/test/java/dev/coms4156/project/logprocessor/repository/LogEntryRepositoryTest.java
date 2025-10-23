@@ -134,7 +134,7 @@ class LogEntryRepositoryTest {
     repo.save(new LogEntry("clientA", "000.000.0.00", "GET", "/login", 200, 50, now));
     repo.save(new LogEntry("clientA", "000.000.0.00", "GET", "/data", 200, 50, now));
 
-    List<Object[]> results = repo.findIpsWithManyAuthErrors(3);
+    List<Object[]> results = repo.findIpsWithManyAuthErrors(3, "clientA");
 
     assertThat(results).isNotEmpty();
     Object[] row = results.get(0);

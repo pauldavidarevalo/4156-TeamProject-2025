@@ -2,6 +2,7 @@ package dev.coms4156.project.logprocessor.controller;
 
 import dev.coms4156.project.logprocessor.service.LogService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,9 +25,9 @@ public class SecurityController {
   * @return autoformatted JSON of entries containing hourWindow, ipAddress, 
   *     and count of auth errors in that window
   */
-  @GetMapping("/suspicious-ips")
-  public Object getSuspiciousIps() {
-    return logService.getIpsWithManyAuthErrors();
+  @GetMapping("/suspicious-ips/{clientId}")
+  public Object getSuspiciousIps(@PathVariable String clientId) {
+    return logService.getIpsWithManyAuthErrors(clientId);
   }
 }
 

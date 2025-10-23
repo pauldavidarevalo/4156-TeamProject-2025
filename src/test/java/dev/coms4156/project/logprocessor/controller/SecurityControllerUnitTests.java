@@ -35,12 +35,13 @@ public class SecurityControllerUnitTests {
               put("ipAddress", "10.0.0.1");
               put("hourWindow", "2025-10-22 13:00:00");
               put("count", 7L);
+              put("clientId", "clientA");
           }}
     );
-    when(logService.getIpsWithManyAuthErrors()).thenReturn(mockSuspiciousIps);
+    when(logService.getIpsWithManyAuthErrors("clientA")).thenReturn(mockSuspiciousIps);
 
-    Object result = securityController.getSuspiciousIps();
+    Object result = securityController.getSuspiciousIps("clientA");
     assertEquals(mockSuspiciousIps, result);
-    verify(logService, times(1)).getIpsWithManyAuthErrors();
+    verify(logService, times(1)).getIpsWithManyAuthErrors("clientA");
   }
 }

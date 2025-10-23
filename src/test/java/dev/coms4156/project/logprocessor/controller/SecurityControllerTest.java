@@ -55,17 +55,19 @@ class SecurityControllerTest {
             put("ipAddress", "192.168.1.1");
             put("hourWindow", "2025-10-22 12:00:00");
             put("count", 10L);
+            put("clientId", "clientA");
         }},
         new LinkedHashMap<>() {{
             put("ipAddress", "10.0.0.1");
             put("hourWindow", "2025-10-22 13:00:00");
             put("count", 7L);
+            put("clientId", "clientA");
         }}
     );
 
-    when(logService.getIpsWithManyAuthErrors()).thenReturn(mockData);
+    when(logService.getIpsWithManyAuthErrors("clientA")).thenReturn(mockData);
 
-    mockMvc.perform(get("/security/suspicious-ips"))
+    mockMvc.perform(get("/security/suspicious-ips/clientA"))
             .andExpect(status().isOk())
             .andExpect(content().json("""
                 [
@@ -74,18 +76,18 @@ class SecurityControllerTest {
                 ]
             """));
 
-    verify(logService, times(1)).getIpsWithManyAuthErrors();
+    verify(logService, times(1)).getIpsWithManyAuthErrors("clientA");
   }
 
   /** Test /security/suspicious-ips endpoint with no data. */
   @Test
   void testGetSuspiciousIps_ReturnsEmptyWhenNoData() throws Exception {
-    when(logService.getIpsWithManyAuthErrors()).thenReturn(Collections.emptyList());
+    when(logService.getIpsWithManyAuthErrors("clientB")).thenReturn(Collections.emptyList());
 
-    mockMvc.perform(get("/security/suspicious-ips"))
+    mockMvc.perform(get("/security/suspicious-ips/clientB"))
             .andExpect(status().isOk())
             .andExpect(content().json("[]"));
 
-    verify(logService, times(1)).getIpsWithManyAuthErrors();
+    verify(logService, times(1)).getIpsWithManyAuthErrors("clientB");
   }
 }
