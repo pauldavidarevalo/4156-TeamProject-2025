@@ -120,12 +120,16 @@ class LogEntryRepositoryTest {
   }
 
   @Test
-  @DisplayName("findIpsWithManyAuthErrors should find IPs with >= threshold 401/403 errors per hour")
+  @DisplayName(
+      "findIpsWithManyAuthErrors should find IPs "
+      + "with >= threshold 401/403 errors per hour"
+  )
   void testFindIpsWithManyAuthErrors() {
     LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS);
 
     for (int i = 0; i < 5; i++) {
-      repo.save(new LogEntry("clientA", "123.456.7.89", "GET", "/login", 401, 100, now.plusMinutes(i)));
+      repo.save(new LogEntry(
+          "clientA", "123.456.7.89", "GET", "/login", 401, 100, now.plusMinutes(i)));
     }
     repo.save(new LogEntry("clientA", "000.000.0.00", "GET", "/login", 200, 50, now));
     repo.save(new LogEntry("clientA", "000.000.0.00", "GET", "/data", 200, 50, now));
