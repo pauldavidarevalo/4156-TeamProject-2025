@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,11 +31,11 @@ public class SecurityControllerUnitTests {
   @Test
   void getSuspiciousIpsAndReturnFromService() {
     List<Map<String, Object>> mockSuspiciousIps = Arrays.asList(
-            new HashMap<>() {{
-                put("ipAddress", "10.0.0.1");
-                put("hourWindow", "2025-10-22 13:00:00");
-                put("count", 7L);
-            }}
+          new HashMap<>() {{
+              put("ipAddress", "10.0.0.1");
+              put("hourWindow", "2025-10-22 13:00:00");
+              put("count", 7L);
+          }}
     );
     when(logService.getIpsWithManyAuthErrors()).thenReturn(mockSuspiciousIps);
 

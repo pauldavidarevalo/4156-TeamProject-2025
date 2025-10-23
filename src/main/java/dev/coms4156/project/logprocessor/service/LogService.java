@@ -143,17 +143,22 @@ public class LogService {
     return result;
   }
 
-    public List<Map<String, Object>> getIpsWithManyAuthErrors() {
-			int threshold = 5;
-			List<Object[]> results = repo.findIpsWithManyAuthErrors(threshold);
-			return results.stream()
-										.map(row -> Map.of(
-												"ipAddress", row[0],
-												"hourWindow", row[1],
-												"errorCount", row[2]
-										))
-										.toList();
-    }
-
-
+  /**
+  * Returns a map of IP addresses with their corresponding hour windows and counts of 
+  *   authentication errors.
+  * Example:
+  * [
+  *   {"ipAddress": "192.168.1.1", "hourWindow": "2025-10-20T13:00:00", "errorCount": 7}
+  * ]
+  */
+  public List<Map<String, Object>> getIpsWithManyAuthErrors() {
+    int threshold = 5;
+    List<Object[]> results = repo.findIpsWithManyAuthErrors(threshold);
+    return results.stream()
+        .map(row -> Map.of(
+            "ipAddress", row[0],
+            "hourWindow", row[1],
+            "errorCount", row[2]))
+        .toList();
+  }
 }
