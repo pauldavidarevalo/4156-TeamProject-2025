@@ -3,6 +3,7 @@ package dev.coms4156.project.logprocessor.repository;
 import dev.coms4156.project.logprocessor.model.LogEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -41,4 +42,13 @@ public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
   ORDER BY hour
   """, nativeQuery = true)
   List<Object[]> countErrorCodesByHour();
+
+@Query("SELECT l.ipAddress, l.hourWindow, COUNT(l) " +
+       "FROM LogEntry l " +
+       "WHERE l.statusCode IN (401, 403) " +
+       "GROUP BY l.ipAddress, l.hourWindow " +
+       "HAVING COUNT(l) >= :threshold")
+List<Object[]> findIpsWithManyAuthErrors(@Param("threshold") int threshold);
+
+
 }

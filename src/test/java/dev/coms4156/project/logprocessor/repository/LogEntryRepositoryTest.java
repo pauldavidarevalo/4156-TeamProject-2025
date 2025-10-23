@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.coms4156.project.logprocessor.model.LogEntry;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -98,8 +99,10 @@ class LogEntryRepositoryTest {
   void testCountRequestsByHour() {
     try {
       List<Object[]> results = repo.countRequestsByHour("clientA");
-      // We can't validate counts exactly in H2, just ensure query runs without crash
-      assertThat(results).isNotNull();
+      // If native query runs, ensure the total of the returned counts equals the number of entries for clientA
+      long totalFromQuery = results.stream().mapToLong(r -> (Long) r[1]).sum();
+  long expected = repo.findAll().stream().filter(entry -> "clientA".equals(entry.getClientId())).count();
+      assertThat(totalFromQuery).isEqualTo(expected);
     } catch (InvalidDataAccessResourceUsageException e) {
       System.out.println("Skipping countRequestsByHour test (H2 lacks strftime)");
     }
@@ -116,5 +119,27 @@ class LogEntryRepositoryTest {
     }
   }
 
+  @Test
+  @DisplayName("findIpsWithManyAuthErrors should find IPs with >= threshold 401/403 errors per hour")
+  void testFindIpsWithManyAuthErrors() {
+    LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS);
 
+    for (int i = 0; i < 5; i++) {
+      repo.save(new LogEntry("clientA", "123.456.7.89", "GET", "/login", 401, 100, now.plusMinutes(i)));
+    }
+    repo.save(new LogEntry("clientA", "000.000.0.00", "GET", "/login", 200, 50, now));
+    repo.save(new LogEntry("clientA", "000.000.0.00", "GET", "/data", 200, 50, now));
+
+    List<Object[]> results = repo.findIpsWithManyAuthErrors(3);
+
+    assertThat(results).isNotEmpty();
+    Object[] row = results.get(0);
+    String ip = (String) row[0];
+    LocalDateTime hourWindow = (LocalDateTime) row[1];
+    Long count = (Long) row[2];
+
+    assertThat(ip).isEqualTo("123.456.7.89");
+    assertThat(hourWindow).isEqualTo(now);
+    assertThat(count).isGreaterThanOrEqualTo(5);
+  }
 }
