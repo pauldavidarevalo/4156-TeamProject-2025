@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,6 +39,7 @@ public class LogEntryUnitTests {
     LocalDateTime timestamp = LocalDateTime.of(2025, 1, 1, 12, 0, 0);
     LogEntry logEntry = new LogEntry(clientId,
             ipAddress, method, endpoint, statusCode, responseSize, timestamp);
+    LocalDateTime expectedHourWindow = timestamp.truncatedTo(java.time.temporal.ChronoUnit.HOURS);
 
     assertNull(logEntry.getId());
     assertEquals(clientId, logEntry.getClientId());
@@ -47,5 +49,6 @@ public class LogEntryUnitTests {
     assertEquals(statusCode, logEntry.getStatusCode());
     assertEquals(responseSize, logEntry.getResponseSize());
     assertEquals(timestamp, logEntry.getTimestamp());
+    assertEquals(expectedHourWindow, logEntry.getHourWindow());
   }
 }
