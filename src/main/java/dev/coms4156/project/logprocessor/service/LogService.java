@@ -123,8 +123,8 @@ public class LogService {
    *   "2025-10-20T13:00:00": {"4xx": 3, "5xx": 1}
    * }
    */
-  public Map<String, Map<String, Integer>> getErrorCountsByHour() {
-    List<Object[]> rows = repo.countErrorCodesByHour();
+  public Map<String, Map<String, Integer>> getErrorCountsByHour(String clientId) {
+    List<Object[]> rows = repo.countErrorCodesByHour(clientId);
     Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
 
     for (Object[] row : rows) {

@@ -38,10 +38,11 @@ public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
          SUM(CASE WHEN status_code BETWEEN 400 AND 499 THEN 1 ELSE 0 END) AS count_4xx,
          SUM(CASE WHEN status_code BETWEEN 500 AND 599 THEN 1 ELSE 0 END) AS count_5xx
   FROM log_entries 
+  WHERE client_id = :clientId
   GROUP BY hour 
   ORDER BY hour
   """, nativeQuery = true)
-  List<Object[]> countErrorCodesByHour();
+  List<Object[]> countErrorCodesByHour(String clientId);
 
   @Query("""
         SELECT l.ipAddress, l.hourWindow, COUNT(l)

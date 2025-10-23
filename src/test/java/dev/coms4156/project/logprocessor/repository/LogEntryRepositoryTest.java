@@ -112,7 +112,7 @@ class LogEntryRepositoryTest {
   @DisplayName("countErrorCodesByHour should run only in SQLite-compatible environment")
   void testCountErrorCodesByHour() {
     try {
-      List<Object[]> results = repo.countErrorCodesByHour();
+      List<Object[]> results = repo.countErrorCodesByHour("clientA");
       assertThat(results).isNotNull();
     } catch (InvalidDataAccessResourceUsageException e) {
       System.out.println("Skipping countErrorCodesByHour test (H2 lacks strftime)");

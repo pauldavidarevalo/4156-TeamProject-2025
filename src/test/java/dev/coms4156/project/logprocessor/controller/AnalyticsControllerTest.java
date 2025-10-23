@@ -97,12 +97,12 @@ class AnalyticsControllerTest {
     mockData.put("2025-10-20 13:00:00", hour1);
     mockData.put("2025-10-20 14:00:00", hour2);
 
-    when(logService.getErrorCountsByHour()).thenReturn(mockData);
+    when(logService.getErrorCountsByHour("clientA")).thenReturn(mockData);
 
-    mockMvc.perform(get("/analytics/timeseries/error-counts"))
+    mockMvc.perform(get("/analytics/timeseries/error-counts/clientA"))
             .andExpect(status().isOk())
             .andExpect(content().json("{\"2025-10-20 13:00:00\":{\"4xx\":3,\"5xx\":1},\"2025-10-20 14:00:00\":{\"4xx\":2,\"5xx\":0}}"));
 
-    verify(logService, times(1)).getErrorCountsByHour();
+    verify(logService, times(1)).getErrorCountsByHour("clientA");
   }
 }
