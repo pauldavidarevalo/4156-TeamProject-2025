@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 /**
  * This file represents the structure for a typical LogEntry.
@@ -30,6 +31,10 @@ public class LogEntry {
 
   @Column(nullable = false)
   private String endpoint;
+
+  @Column(nullable = false)
+  private LocalDateTime hourWindow;
+
 
   private int statusCode;
   private long responseSize;
@@ -62,6 +67,7 @@ public class LogEntry {
     this.statusCode = statusCode;
     this.responseSize = responseSize;
     this.timestamp = timestamp;
+    this.hourWindow = timestamp.truncatedTo(ChronoUnit.HOURS);
   }
 
   // --- Getters ---
@@ -95,6 +101,10 @@ public class LogEntry {
 
   public LocalDateTime getTimestamp() {
     return timestamp;
+  }
+
+  public LocalDateTime getHourWindow() {
+    return hourWindow;
   }
 
   // --- Setters (optional but safer for JPA) ---

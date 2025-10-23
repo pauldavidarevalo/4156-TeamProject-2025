@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -142,20 +143,17 @@ public class LogService {
     return result;
   }
 
-	public List<Map<String, Object>> getIpsWithManyAuthErrors() {
-		int threshold = 5;
-		List<Object[]> results = repo.findIpsWithManyAuthErrors(threshold);
-
-		List<Map<String, Object>> response = new ArrayList<>();
-		for (Object[] row : results) {
-				Map<String, Object> map = new HashMap<>();
-				map.put("ipAddress", row[0]);
-				map.put("hourWindow", row[1]);
-				map.put("count", row[2]);
-				response.add(map);
-		}
-		return response;
-	}
+    public List<Map<String, Object>> getIpsWithManyAuthErrors() {
+			int threshold = 5;
+			List<Object[]> results = repo.findIpsWithManyAuthErrors(threshold);
+			return results.stream()
+										.map(row -> Map.of(
+												"ipAddress", row[0],
+												"hourWindow", row[1],
+												"errorCount", row[2]
+										))
+										.toList();
+    }
 
 
 }
