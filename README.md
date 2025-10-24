@@ -164,3 +164,6 @@ These are all the tools used for code development and deployment for this applic
     - Prompt: generate a sample apache log that contains some ip-addresses with multiple 401/403 calls in an hour window
 -   Used to make the query for LogEntryRepository.findIpsWithManyAuthErrors
     - Prompt: Given this LogEntry class, write a JPQL query to get ip-addresses with multiple 401/403 calls in an hour window
+-   Used ChatGPT to debug and refine logic for SQLite query integration and JSON-safe output in the following functions in LogService.java:
+    - Prompt: Fix ClassCastException and make this method work with both Integer and Long types from SQLite aggregate results
+    - Resolve JSON serialization errors (null map keys) and make aggregation results safe for 4xx/5xx counts

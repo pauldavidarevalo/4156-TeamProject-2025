@@ -121,7 +121,7 @@ class LogServiceTest {
     verify(repo).save(captor.capture());
 
     LogEntry entry = captor.getValue();
-    assertEquals(0L, entry.getResponseSize()); // covers the “equals('-')” branch
+    assertEquals(0L, entry.getResponseSize());
   }
 
   @Test

@@ -107,7 +107,7 @@ public class LogEntry {
     return hourWindow;
   }
 
-  // --- Setters (optional but safer for JPA) ---
+  // --- Setters ---
   public void setClientId(String clientId) {
     this.clientId = clientId;
   }

@@ -96,6 +96,7 @@ public class LogService {
         return repo.existsByClientId(clientId);
     }
 
+  // this function is debugged/fixed with chatgpt generated code
   /**
    * Returns a mapping of hour → request count for a given clientId.
    * Example:
@@ -116,6 +117,7 @@ public class LogService {
     return result;
   }
 
+  // this function is debugged/fixed with chatgpt generated code
   /**
    * Returns a mapping of hour → {4xx, 5xx} error counts system-wide.
    * Example:

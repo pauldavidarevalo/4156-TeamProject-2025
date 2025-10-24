@@ -26,7 +26,6 @@ class AnalyticsControllerTest {
   @Autowired
   private LogService logService;
 
-  /** Modern Spring Boot 3.4+ mock configuration (replaces @MockBean) */
   static class MockConfig {
     @Bean
     LogService logService() {
