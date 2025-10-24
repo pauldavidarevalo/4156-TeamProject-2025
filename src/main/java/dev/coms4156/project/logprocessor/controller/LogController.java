@@ -36,6 +36,18 @@ public class LogController {
   @PostMapping("/upload")
   public String uploadLog(@RequestParam("clientId") String clientId,
                           @RequestParam("file") MultipartFile file) {
+    if (clientId == null || clientId.isBlank()) {
+      throw new IllegalArgumentException("clientId is required.");
+    }
+
+    if (file == null || file.isEmpty()) {
+      throw new IllegalArgumentException("file is required.");
+    }
+
+    String filename = file.getOriginalFilename();
+    if (filename == null || !filename.toLowerCase().endsWith(".log")) {
+      throw new IllegalArgumentException("only .log files are accepted.");
+    }
     try {
       logService.processLogFile(file.getInputStream(), clientId);
       return "Log file processed successfully.";

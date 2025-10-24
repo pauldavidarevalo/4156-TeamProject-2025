@@ -43,6 +43,15 @@ endpoint structure will cause an HTTP 400 Bad Request response. If the service i
 and "mvn spring-boot:run" are not used), there will be generic error message saying "This site can't be reached 127.0.0.1 
 refused to connect." on the page. As a side note, there is an option to check the "Pretty-print" box so that the JSON response looks well-formatted.
 
+### GET /analytics/top-endpoints
+- Expected Input Parameters: N/A
+- Expected Output: A JSON array of `[endpoint, count]` arrays sorted by frequency descending (most to least)
+- Returns the most frequently accessed endpoints across all clients
+- Upon Success: HTTP 200 Status Code is returned with the top endpoints array in the response body
+- Upon Failure: N/A (There are no exceptions thrown and no error responses are generated)
+- Endpoint Link: http://127.0.0.1:8080/analytics/top-endpoints
+
+
 ### POST /logs/upload
 - Expected Input Parameters: clientId (String and form-data parameter), file (MultipartFile and form-data parameter)
 - Expected Output: A String containing success or error message
@@ -86,6 +95,11 @@ refused to connect." on the page. As a side note, there is an option to check th
 - Upon Success: HTTP 200 Status Code is returned with the suspicious IPs array in the response body
 - Upon Failure: N/A (There are no exceptions thrown and no error responses are generated)
 - Endpoint Link: http://127.0.0.1:8080/security/suspicious-ips
+
+## API Tests
+
+[API Testing Guide](./API-Testing.md)
+
 
 ## Style Checking Report
 This project uses the Maven checkstyle tool to check the style of the code and also have style checking reports that

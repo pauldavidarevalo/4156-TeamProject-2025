@@ -55,7 +55,7 @@ class LogControllerTest {
   @Test
   void testUploadLogSuccess() throws Exception {
     MockMultipartFile mockFile =
-            new MockMultipartFile("file", "log.txt", "text/plain", "dummy data".getBytes());
+            new MockMultipartFile("file", "log.log", "text/plain", "dummy data".getBytes());
 
     doNothing().when(logService).processLogFile(any(), eq("clientA"));
 
@@ -72,7 +72,7 @@ class LogControllerTest {
   @Test
   void testUploadLogException() throws Exception {
     MockMultipartFile mockFile =
-            new MockMultipartFile("file", "log.txt", "text/plain", "invalid".getBytes());
+            new MockMultipartFile("file", "log.log", "text/plain", "invalid".getBytes());
 
     doThrow(new RuntimeException("Parsing failed"))
             .when(logService)
