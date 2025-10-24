@@ -12,9 +12,8 @@ Make sure to run and install the following:
     - Download JDK 17 to have the best compatibility with the code developed in the repo
 - IntelliJ IDE: https://www.jetbrains.com/idea/download/?section=windows
     - You should use IntelliJ for optimal performance, but other IDEs like Visual Studio Code should be alright
-- PostgreSQL Database (required for JPA/Hibernate):
-    - Install PostgreSQL 15+ and create a database named `logprocessor`
-    - Update `application.properties` with your database credentials
+- SQLite Database (required for JPA/Hibernate):
+    - Already included in the `application.properties`. Database is created upon running service.
 - Download the PMD Source Code Analyzer: https://pmd.github.io/
 - Clone the repo using the command "git clone https://github.com/pauldavidarevalo/4156-TeamProject-2025.git"
 - Go into the root folder and run the command "mvn compile" to compile the project with Maven
@@ -62,13 +61,6 @@ refused to connect." on the page. As a side note, there is an option to check th
     - HTTP 404 Status Code with "Error: clientId not found" in the response body if no log entries exist for the clientId
 - Endpoint Link: http://127.0.0.1:8080/logs/statusCodeCounts?clientId={clientId}
 
-### GET /analytics/top-endpoints
-- Expected Input Parameters: N/A
-- Expected Output: A JSON array of `[endpoint, count]` arrays sorted by frequency descending (most to least)
-- Returns the most frequently accessed endpoints across all clients
-- Upon Success: HTTP 200 Status Code is returned with the top endpoints array in the response body
-- Upon Failure: N/A (There are no exceptions thrown and no error responses are generated)
-- Endpoint Link: http://127.0.0.1:8080/analytics/top-endpoints
 
 ### GET /analytics/timeseries/requests/{clientId}
 - Expected Input Parameters: clientId (String and path variable)
@@ -78,16 +70,16 @@ refused to connect." on the page. As a side note, there is an option to check th
 - Upon Failure: N/A (There are no exceptions thrown and no error responses are generated)
 - Endpoint Link: http://127.0.0.1:8080/analytics/timeseries/requests/{clientId}
 
-### GET /analytics/timeseries/error-counts
-- Expected Input Parameters: N/A
+### GET /analytics/timeseries/error-counts/{clientId}
+- Expected Input Parameters: clientId (String and path variable)
 - Expected Output: A JSON object mapping hour strings to error count objects
 - Returns system-wide hourly 4xx and 5xx error counts
 - Upon Success: HTTP 200 Status Code is returned with the error time series object in the response body
 - Upon Failure: N/A (There are no exceptions thrown and no error responses are generated)
 - Endpoint Link: http://127.0.0.1:8080/analytics/timeseries/error-counts
 
-### GET /security/suspicious-ips
-- Expected Input Parameters: N/A
+### GET /security/suspicious-ips/{clientId}
+- Expected Input Parameters: clientId (String and path variable)
 - Expected Output: A JSON array of objects containing suspicious IP activity
 - Returns IP addresses with 5 or more authentication errors (401/403) within any single hour window
 - Upon Success: HTTP 200 Status Code is returned with the suspicious IPs array in the response body
@@ -146,8 +138,8 @@ These are all the tools used for code development and deployment for this applic
 - Spring Data JPA/Hibernate
   - Spring Data JPA converts the LogEntryRepository interface into full database CRUD operations.
   - Spring Data JPA also allows for custom queries through the analytics endpoints.
-- PostgreSQL
-  - PostgreSQL is used to facilitate data persistence and storage with a database.
+- SQLite
+  - SQLite is used to facilitate data persistence and storage with a database.
 - Checkstyle
     - Checkstyle is used for code style reporting and enforcement.
 - PMD Source Code Analyzer
