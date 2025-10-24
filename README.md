@@ -158,3 +158,9 @@ These are all the tools used for code development and deployment for this applic
     - JaCoCo was used to generate code coverage reports.
 - Postman
     - Postman was very useful for API testing, especially when someone needs to make PATCH requests to the service.
+
+## AI Documentation
+-   Used to make the sampleApacheLogSimple.log and suspiciousIps.log. 
+    - Prompt: generate a sample apache log that contains some ip-addresses with multiple 401/403 calls in an hour window
+-   Used to make the query for LogEntryRepository.findIpsWithManyAuthErrors
+    - Prompt: Given this LogEntry class, write a JPQL query to get ip-addresses with multiple 401/403 calls in an hour window

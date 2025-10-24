@@ -44,6 +44,7 @@ public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
   """, nativeQuery = true)
   List<Object[]> countErrorCodesByHour(String clientId);
 
+  // Generated with ChatGPT
   @Query("""
         SELECT l.ipAddress, l.hourWindow, COUNT(l)
         FROM LogEntry l
@@ -53,6 +54,4 @@ public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
         """)
   List<Object[]> findIpsWithManyAuthErrors(@Param("threshold") int threshold,
                                            @Param("clientId") String clientId);
-
-
 }
