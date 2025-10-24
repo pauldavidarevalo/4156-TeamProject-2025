@@ -99,9 +99,11 @@ class LogEntryRepositoryTest {
   void testCountRequestsByHour() {
     try {
       List<Object[]> results = repo.countRequestsByHour("clientA");
-      // If native query runs, ensure the total of the returned counts equals the number of entries for clientA
+      // If native query runs, ensure the total of the returned counts equals
+      // the number of entries for clientA
       long totalFromQuery = results.stream().mapToLong(r -> (Long) r[1]).sum();
-  long expected = repo.findAll().stream().filter(entry -> "clientA".equals(entry.getClientId())).count();
+      long expected = repo.findAll().stream().filter(
+              entry -> "clientA".equals(entry.getClientId())).count();
       assertThat(totalFromQuery).isEqualTo(expected);
     } catch (InvalidDataAccessResourceUsageException e) {
       System.out.println("Skipping countRequestsByHour test (H2 lacks strftime)");
@@ -131,8 +133,8 @@ class LogEntryRepositoryTest {
       repo.save(new LogEntry(
           "clientA", "123.456.7.89", "GET", "/login", 401, 100, now.plusMinutes(i)));
     }
-    repo.save(new LogEntry("clientA", "000.000.0.00", "GET", "/login", 200, 50, now));
-    repo.save(new LogEntry("clientA", "000.000.0.00", "GET", "/data", 200, 50, now));
+    repo.save(new LogEntry("clientA", "XXX.000.0.00", "GET", "/login", 200, 50, now));
+    repo.save(new LogEntry("clientA", "XXX.000.0.00", "GET", "/data", 200, 50, now));
 
     List<Object[]> results = repo.findIpsWithManyAuthErrors(3, "clientA");
 
