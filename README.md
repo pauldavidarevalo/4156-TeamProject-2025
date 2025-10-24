@@ -23,6 +23,7 @@ Make sure to run and install the following:
 - If you have issues making POST multipart requests, create a free Postman account here: https://www.postman.com/
 - Download the Desktop Agent for Postman so that you can make requests locally
 - Create a new workspace so that you can invoke different requests
+- In order to populate the database, call /logs/upload with the sampleApacheSimple.log and suspiciousIps.log, both found in the sampleLogs folder
 - You can then paste the URL of the endpoint you are invoking in the search bar and select the type of request made
 - If you wish to run the style checker, you can run the command "mvn checkstyle:check" to see the code style results on the command terminal or the command "mvn checkstyle:checkstyle" if you wish to generate the report.
 - Note: This project was run on a Windows computer, so the instructions might be a little different for Mac computers.
