@@ -6,7 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import dev.coms4156.project.logprocessor.service.LogService;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,14 +30,14 @@ public class SecurityControllerUnitTests {
 
   @Test
   void getSuspiciousIpsAndReturnFromService() {
-    List<Map<String, Object>> mockSuspiciousIps = Arrays.asList(
-          new HashMap<>() {{
-              put("ipAddress", "10.0.0.1");
-              put("hourWindow", "2025-10-22 13:00:00");
-              put("count", 7L);
-              put("clientId", "clientA");
-          }}
-    );
+    Map<String, Object> mockMap = new HashMap<>();
+    mockMap.put("ipAddress", "10.0.0.X");
+    mockMap.put("hourWindow", "2025-10-22 13:00:00");
+    mockMap.put("count", 7L);
+    mockMap.put("clientId", "clientA");
+    List<Map<String, Object>> mockSuspiciousIps = new ArrayList<>();
+    mockSuspiciousIps.add(mockMap);
+
     when(logService.getIpsWithManyAuthErrors("clientA")).thenReturn(mockSuspiciousIps);
 
     Object result = securityController.getSuspiciousIps("clientA");

@@ -48,7 +48,7 @@ class AnalyticsControllerTest {
 
   /** Test normal response with populated data. */
   @Test
-  void testGetTopEndpoints_ReturnsDataSuccessfully() throws Exception {
+  void testGetTopEndpointsReturnsDataSuccessfully() throws Exception {
     List<Object[]> mockData = new ArrayList<>();
     mockData.add(new Object[] { "endpoint1", 10L });
     mockData.add(new Object[] { "endpoint2", 5L });
@@ -64,7 +64,7 @@ class AnalyticsControllerTest {
 
   /** Test when the service returns an empty list. */
   @Test
-  void testGetTopEndpoints_EmptyList() throws Exception {
+  void testGetTopEndpointsEmptyList() throws Exception {
     when(logService.getTopEndpoints()).thenReturn(new ArrayList<>());
 
     mockMvc.perform(get("/analytics/top-endpoints"))
@@ -76,7 +76,7 @@ class AnalyticsControllerTest {
 
   /** Test /analytics/timeseries/requests/{clientId} endpoint. */
   @Test
-  void testGetRequestCountsByHour_ReturnsDataSuccessfully() throws Exception {
+  void testGetRequestCountsByHourReturnsDataSuccessfully() throws Exception {
     Map<String, Integer> mockData = new LinkedHashMap<>();
     mockData.put("2025-10-20 13:00:00", 5);
     mockData.put("2025-10-20 14:00:00", 2);
@@ -92,7 +92,7 @@ class AnalyticsControllerTest {
 
   /** Test /analytics/timeseries/error-counts endpoint. */
   @Test
-  void testGetErrorCountsByHour_ReturnsDataSuccessfully() throws Exception {
+  void testGetErrorCountsByHourReturnsDataSuccessfully() throws Exception {
     final Map<String, Map<String, Integer>> mockData = new LinkedHashMap<>();
     Map<String, Integer> hour1 = new HashMap<>();
     hour1.put("4xx", 3);

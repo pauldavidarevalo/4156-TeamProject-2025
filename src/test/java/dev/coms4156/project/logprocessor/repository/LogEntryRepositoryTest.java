@@ -133,8 +133,8 @@ class LogEntryRepositoryTest {
       repo.save(new LogEntry(
           "clientA", "123.456.7.89", "GET", "/login", 401, 100, now.plusMinutes(i)));
     }
-    repo.save(new LogEntry("clientA", "000.000.0.00", "GET", "/login", 200, 50, now));
-    repo.save(new LogEntry("clientA", "000.000.0.00", "GET", "/data", 200, 50, now));
+    repo.save(new LogEntry("clientA", "000.000.0.XX", "GET", "/login", 200, 50, now));
+    repo.save(new LogEntry("clientA", "000.000.0.XX", "GET", "/data", 200, 50, now));
 
     List<Object[]> results = repo.findIpsWithManyAuthErrors(3, "clientA");
 

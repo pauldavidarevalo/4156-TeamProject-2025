@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import dev.coms4156.project.logprocessor.service.LogService;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,21 +49,20 @@ class SecurityControllerTest {
 
   /** Test /security/suspicious-ips endpoint. */
   @Test
-  void testGetSuspiciousIps_ReturnsDataSuccessfully() throws Exception {
-    List<Map<String, Object>> mockData = Arrays.asList(
-        new LinkedHashMap<>() {{
-            put("ipAddress", "192.168.1.1");
-            put("hourWindow", "2025-10-22 12:00:00");
-            put("count", 10L);
-            put("clientId", "clientA");
-        }},
-        new LinkedHashMap<>() {{
-            put("ipAddress", "10.0.0.1");
-            put("hourWindow", "2025-10-22 13:00:00");
-            put("count", 7L);
-            put("clientId", "clientA");
-        }}
-    );
+  void testGetSuspiciousIpsReturnsDataSuccessfully() throws Exception {
+    Map<String, Object> mockMap1 = new LinkedHashMap<>();
+    mockMap1.put("ipAddress", "192.168.1.X");
+    mockMap1.put("hourWindow", "2025-10-22 12:00:00");
+    mockMap1.put("count", 10L);
+    mockMap1.put("clientId", "clientA");
+    Map<String, Object> mockMap2 = new LinkedHashMap<>();
+    mockMap2.put("ipAddress", "10.0.0.X");
+    mockMap2.put("hourWindow", "2025-10-22 13:00:00");
+    mockMap2.put("count", 7L);
+    mockMap2.put("clientId", "clientA");
+    List<Map<String, Object>> mockData = new ArrayList<>();
+    mockData.add(mockMap1);
+    mockData.add(mockMap2);
 
     when(logService.getIpsWithManyAuthErrors("clientA")).thenReturn(mockData);
 
@@ -71,8 +70,8 @@ class SecurityControllerTest {
             .andExpect(status().isOk())
             .andExpect(content().json("""
                 [
-                  {"ipAddress":"192.168.1.1","hourWindow":"2025-10-22 12:00:00","count":10},
-                  {"ipAddress":"10.0.0.1","hourWindow":"2025-10-22 13:00:00","count":7}
+                  {"ipAddress":"192.168.1.X","hourWindow":"2025-10-22 12:00:00","count":10},
+                  {"ipAddress":"10.0.0.X","hourWindow":"2025-10-22 13:00:00","count":7}
                 ]
             """));
 
@@ -81,7 +80,7 @@ class SecurityControllerTest {
 
   /** Test /security/suspicious-ips endpoint with no data. */
   @Test
-  void testGetSuspiciousIps_ReturnsEmptyWhenNoData() throws Exception {
+  void testGetSuspiciousIpsReturnsEmptyWhenNoData() throws Exception {
     when(logService.getIpsWithManyAuthErrors("clientB")).thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/security/suspicious-ips/clientB"))
