@@ -103,6 +103,8 @@ branch coverage by clicking index.html and opening it in a browser (Google Chrom
 
 <img src="/images/JaCoCo_Report_for_Branch_Coverage.png" alt="alt text" />
 
+Final test coverage and checkstyle reports stored in First Iteration Reports folder.
+
 ## Static Code Analysis
 ### PMD Source Code Analyzer Guides
 1. https://pmd.github.io/

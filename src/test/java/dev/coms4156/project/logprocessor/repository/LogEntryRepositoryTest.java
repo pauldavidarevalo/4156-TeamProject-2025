@@ -99,9 +99,11 @@ class LogEntryRepositoryTest {
   void testCountRequestsByHour() {
     try {
       List<Object[]> results = repo.countRequestsByHour("clientA");
-      // If native query runs, ensure the total of the returned counts equals the number of entries for clientA
+      // If native query runs, ensure the total of the returned counts 
+      // equals the number of entries for clientA
       long totalFromQuery = results.stream().mapToLong(r -> (Long) r[1]).sum();
-  long expected = repo.findAll().stream().filter(entry -> "clientA".equals(entry.getClientId())).count();
+      long expected = repo.findAll().stream().filter(
+            entry -> "clientA".equals(entry.getClientId())).count();
       assertThat(totalFromQuery).isEqualTo(expected);
     } catch (InvalidDataAccessResourceUsageException e) {
       System.out.println("Skipping countRequestsByHour test (H2 lacks strftime)");
