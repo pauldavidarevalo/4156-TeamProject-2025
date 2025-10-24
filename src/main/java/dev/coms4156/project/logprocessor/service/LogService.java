@@ -49,11 +49,11 @@ public class LogService {
         Matcher matcher = LOG_PATTERN.matcher(line);
         if (matcher.find()) {
           String ip = matcher.group(1);
-          String time = matcher.group(2);
+          //String time = matcher.group(2);
           String method = matcher.group(3);
           String endpoint = matcher.group(4);
           int status = Integer.parseInt(matcher.group(5));
-          long size = matcher.group(6).equals("-") ? 0 : Long.parseLong(matcher.group(6));
+          long size = "-".equals(matcher.group(6)) ? 0 : Long.parseLong(matcher.group(6));
 
           // Simplified timestamp parsing
           LocalDateTime timestamp = LocalDateTime.now();
