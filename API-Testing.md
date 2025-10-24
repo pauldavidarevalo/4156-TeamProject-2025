@@ -6,12 +6,12 @@ This document describes the API endpoints and their expected behavior for testin
 
 ## 1. `POST logs/upload`
 
-| Test Description         | Request Body                              | Expected Response Body    | Expected Status Code |
-|--------------------------|-------------------------------------------|---------------------------|----------------------|
-| Valid .log file and client id | JSON object with .log file and client id  | JSON object with message "Log file processed successfully." | 200 OK               |
-| No .log file             | JSON object with only a client id         |  |  |
-| No client id             | JSON object with only a .log file         |  |  |
-| Invalid file             | JSON object with a different type of file |  |  |
+| Test Description         | Request Body                              | Expected Response Body    | Expected Status Code    |
+|--------------------------|-------------------------------------------|---------------------------|-------------------------|
+| Valid .log file and client id | JSON object with .log file and client id  | JSON object with message "Log file processed successfully." | 200 OK                  |
+| No .log file             | JSON object with only a client id         |JSON object with timestamp, status, error, and path.  | 500 Internal Server Error |
+| No client id             | JSON object with only a .log file         | JSON object with timestamp, status, error, and path. | 500 Internal Server Error                        |
+| Invalid file             | JSON object with a different type of file |JSON object with timestamp, status, error, and path.  | 500 Internal Server Error                        |
 
 - <img src="/images/Screenshot upload OK.png" alt="alt text" />
 ---
@@ -62,3 +62,11 @@ This document describes the API endpoints and their expected behavior for testin
 - <img src="/images/Screenshot suspicious-ips.png" alt="alt text" />
 ---
 
+## 6. `GET top-endpoints/{clientId}`
+| Test Description          | Request Body                                 | Expected Response Body                                                                                                 | Expected Status Code |
+|---------------------------|----------------------------------------------|------------------------------------------------------------------------------------------------------------------------|----------------------|
+| Valid client id           | JSON object with client id as path parameter | JSON object with a list of objects containing errorCount, ipAddress, and hourWindow which have the highest errorCount. | 200 OK               |
+| Client id not in database | JSON object with invalid client id           | Empty JSON object                                                                                                      | 200 OK               |
+| No path parameter         | JSON object without a path parameter         | JSON object with timestamp, status, error, and path.                                                                   | 404 Not Found        |
+
+- <img src="/images/Screenshot top-endpoints.png" alt="alt text" />
