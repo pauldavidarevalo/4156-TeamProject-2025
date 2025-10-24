@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LogEntry.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">logprocessor</a> &gt; <a href="index.source.html" class="el_package">dev.coms4156.project.logprocessor.model</a> &gt; <span class="el_source">LogEntry.java</span></div><h1>LogEntry.java</h1><pre class="source lang-java linenums">package dev.coms4156.project.logprocessor.model;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
+/**
+ * This file represents the structure for a typical LogEntry.
+ */
+@Entity
+@Table(name = &quot;log_entries&quot;)
+public class LogEntry {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
+  @Column(nullable = false)
+  private String clientId;
+
+  @Column(nullable = false)
+  private String ipAddress;
+
+  @Column(nullable = false)
+  private String method;
+
+  @Column(nullable = false)
+  private String endpoint;
+
+  @Column(nullable = false)
+  private LocalDateTime hourWindow;
+
+
+  private int statusCode;
+  private long responseSize;
+  private LocalDateTime timestamp;
+
+  /**
+   * This is the empty LogEntry constructor.
+   */
+<span class="fc" id="L46">  public LogEntry() {</span>
+      // Empty constructor with no arguments.
+<span class="fc" id="L48">  }</span>
+
+  /**
+   * Parameterized LogEntry constructor.
+   *
+   * @param clientId ID input by the client.
+   * @param ipAddress IP Address provided by the client.
+   * @param method Method being invoked.
+   * @param endpoint Endpoint being invoked.
+   * @param statusCode Status code when the log entry is processed.
+   * @param responseSize Size of the response after the log entry is processed.
+   * @param timestamp Time when the log entry is processed.
+   */
+  public LogEntry(String clientId, String ipAddress, String method, String endpoint,
+<span class="fc" id="L62">                  int statusCode, long responseSize, LocalDateTime timestamp) {</span>
+<span class="fc" id="L63">    this.clientId = clientId;</span>
+<span class="fc" id="L64">    this.ipAddress = ipAddress;</span>
+<span class="fc" id="L65">    this.method = method;</span>
+<span class="fc" id="L66">    this.endpoint = endpoint;</span>
+<span class="fc" id="L67">    this.statusCode = statusCode;</span>
+<span class="fc" id="L68">    this.responseSize = responseSize;</span>
+<span class="fc" id="L69">    this.timestamp = timestamp;</span>
+<span class="fc" id="L70">    this.hourWindow = timestamp.truncatedTo(ChronoUnit.HOURS);</span>
+<span class="fc" id="L71">  }</span>
+
+  // --- Getters ---
+  public Long getId() {
+<span class="fc" id="L75">    return id;</span>
+  }
+
+  public String getClientId() {
+<span class="fc" id="L79">    return clientId;</span>
+  }
+
+  public String getIpAddress() {
+<span class="fc" id="L83">    return ipAddress;</span>
+  }
+
+  public String getMethod() {
+<span class="fc" id="L87">    return method;</span>
+  }
+
+  public String getEndpoint() {
+<span class="fc" id="L91">    return endpoint;</span>
+  }
+
+  public int getStatusCode() {
+<span class="fc" id="L95">    return statusCode;</span>
+  }
+
+  public long getResponseSize() {
+<span class="fc" id="L99">    return responseSize;</span>
+  }
+
+  public LocalDateTime getTimestamp() {
+<span class="fc" id="L103">    return timestamp;</span>
+  }
+
+  public LocalDateTime getHourWindow() {
+<span class="fc" id="L107">    return hourWindow;</span>
+  }
+
+  // --- Setters ---
+  public void setClientId(String clientId) {
+<span class="nc" id="L112">    this.clientId = clientId;</span>
+<span class="nc" id="L113">  }</span>
+
+  public void setIpAddress(String ipAddress) {
+<span class="nc" id="L116">    this.ipAddress = ipAddress;</span>
+<span class="nc" id="L117">  }</span>
+
+  public void setMethod(String method) {
+<span class="nc" id="L120">    this.method = method;</span>
+<span class="nc" id="L121">  }</span>
+
+  public void setEndpoint(String endpoint) {
+<span class="nc" id="L124">    this.endpoint = endpoint;</span>
+<span class="nc" id="L125">  }</span>
+
+  public void setStatusCode(int statusCode) {
+<span class="nc" id="L128">    this.statusCode = statusCode;</span>
+<span class="nc" id="L129">  }</span>
+
+  public void setResponseSize(long responseSize) {
+<span class="nc" id="L132">    this.responseSize = responseSize;</span>
+<span class="nc" id="L133">  }</span>
+
+  public void setTimestamp(LocalDateTime timestamp) {
+<span class="nc" id="L136">    this.timestamp = timestamp;</span>
+<span class="nc" id="L137">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
