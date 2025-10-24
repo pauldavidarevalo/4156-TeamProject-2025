@@ -29,7 +29,7 @@ Make sure to run and install the following:
 
 ## Running Tests
 The unit tests are located in the "src/test/java/dev/coms4156/project/logprocessor" directory and
-cover many different branches for the LogEntry model, LogService, and controller classes. You should first
+cover many different branches for the LogEntry model, LogService, LogEntryRepository, controller classes. You should first
 compile the project by going into the root directory and running the command "mvn compile" here. You
 should then run the command "mvn clean test" to run the updated suite of tests. After running these tests, you should
 check that all tests are successfully working (no assertion errors, missing imports, etc.). You can then look at the new
@@ -37,8 +37,8 @@ JaCoCo report by running the command "mvn jacoco:report" and going to the "src/t
 look at the overall branch coverage by clicking index.html and opening it in a browser (Google Chrome works best).
 
 ## Endpoints
-We will go over the endpoints associated with the LogController, AnalyticsController, and SecurityController classes to 
-cover the inputs, outputs, and overall functionality for these methods. Any request that does not follow the correct 
+This summarizes the endpoints from LogController, AnalyticsController, and SecurityController classes, 
+covering the inputs, outputs, and overall functionality for their methods. Any request that does not follow the correct 
 endpoint structure will cause an HTTP 400 Bad Request response. If the service is not running (the commands "mvn compile" 
 and "mvn spring-boot:run" are not used), there will be generic error message saying "This site can't be reached 127.0.0.1 
 refused to connect." on the page. As a side note, there is an option to check the "Pretty-print" box so that the JSON response looks well-formatted.
