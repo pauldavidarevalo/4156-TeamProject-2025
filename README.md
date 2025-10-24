@@ -71,25 +71,25 @@ refused to connect." on the page. As a side note, there is an option to check th
 - Endpoint Link: http://127.0.0.1:8080/analytics/top-endpoints
 
 ### GET /analytics/timeseries/requests/{clientId}
-- Expected Input Parameters: clientId (String and path variable)
+- Expected Input Parameters: clientId (String path variable)
 - Expected Output: A JSON object mapping hour strings to request counts
 - Returns hourly request volume time series for the specified client
 - Upon Success: HTTP 200 Status Code is returned with the time series object in the response body
 - Upon Failure: N/A (There are no exceptions thrown and no error responses are generated)
 - Endpoint Link: http://127.0.0.1:8080/analytics/timeseries/requests/{clientId}
 
-### GET /analytics/timeseries/error-counts
-- Expected Input Parameters: N/A
+### GET /analytics/timeseries/error-counts/{clientId}
+- Expected Input Parameters: clientId (String and path variable)
 - Expected Output: A JSON object mapping hour strings to error count objects
-- Returns system-wide hourly 4xx and 5xx error counts
+- Returns system-wide hourly 4xx and 5xx error counts for given clientId
 - Upon Success: HTTP 200 Status Code is returned with the error time series object in the response body
 - Upon Failure: N/A (There are no exceptions thrown and no error responses are generated)
 - Endpoint Link: http://127.0.0.1:8080/analytics/timeseries/error-counts
 
-### GET /security/suspicious-ips
-- Expected Input Parameters: N/A
+### GET /security/suspicious-ips/{clientId}
+- Expected Input Parameters: clientId (String and path variable)
 - Expected Output: A JSON array of objects containing suspicious IP activity
-- Returns IP addresses with 5 or more authentication errors (401/403) within any single hour window
+- Returns IP addresses with 5 or more authentication errors (401/403) within any single hour window for given clientId
 - Upon Success: HTTP 200 Status Code is returned with the suspicious IPs array in the response body
 - Upon Failure: N/A (There are no exceptions thrown and no error responses are generated)
 - Endpoint Link: http://127.0.0.1:8080/security/suspicious-ips
