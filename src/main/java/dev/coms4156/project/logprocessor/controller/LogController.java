@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
 import dev.coms4156.project.logprocessor.service.LogService;
+import java.util.Locale;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +46,7 @@ public class LogController {
     }
 
     String filename = file.getOriginalFilename();
-    if (filename == null || !filename.toLowerCase().endsWith(".log")) {
+    if (filename == null || !filename.toLowerCase(Locale.US).endsWith(".log")) {
       throw new IllegalArgumentException("only .log files are accepted.");
     }
     try {
