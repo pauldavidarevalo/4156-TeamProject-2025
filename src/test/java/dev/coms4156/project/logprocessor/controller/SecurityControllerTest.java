@@ -95,7 +95,6 @@ class SecurityControllerTest {
   /** Test /security/suspicious-ips endpoint with client not existing. */
   @Test
   void testGetSuspiciousIpsReturnsEmptyWhenClientDoesNotExist() throws Exception {
-    when(logService.getIpsWithManyAuthErrors("clientB")).thenReturn(Collections.emptyList());
     when(logService.clientExists("clientB")).thenReturn(false);
 
     mockMvc.perform(get("/security/suspicious-ips/clientB"))
