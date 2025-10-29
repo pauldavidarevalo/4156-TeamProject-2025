@@ -65,10 +65,11 @@ class SecurityControllerTest {
     mockData.add(mockMap2);
 
     when(logService.getIpsWithManyAuthErrors("clientA")).thenReturn(mockData);
+    when(logService.clientExists("clientA")).thenReturn(true);
 
     mockMvc.perform(get("/security/suspicious-ips/clientA"))
-            .andExpect(status().isOk())
-            .andExpect(content().json("""
+        .andExpect(status().isOk())
+        .andExpect(content().json("""
                 [
                   {"ipAddress":"192.168.1.X","hourWindow":"2025-10-22 12:00:00","count":10},
                   {"ipAddress":"10.0.0.X","hourWindow":"2025-10-22 13:00:00","count":7}
@@ -82,11 +83,25 @@ class SecurityControllerTest {
   @Test
   void testGetSuspiciousIpsReturnsEmptyWhenNoData() throws Exception {
     when(logService.getIpsWithManyAuthErrors("clientB")).thenReturn(Collections.emptyList());
+    when(logService.clientExists("clientB")).thenReturn(true);
 
     mockMvc.perform(get("/security/suspicious-ips/clientB"))
-            .andExpect(status().isOk())
-            .andExpect(content().json("[]"));
+        .andExpect(status().isOk())
+        .andExpect(content().string("No suspicious IPs found"));
 
     verify(logService, times(1)).getIpsWithManyAuthErrors("clientB");
+  }
+
+  /** Test /security/suspicious-ips endpoint with client not existing. */
+  @Test
+  void testGetSuspiciousIpsReturnsEmptyWhenClientDoesNotExist() throws Exception {
+    when(logService.getIpsWithManyAuthErrors("clientB")).thenReturn(Collections.emptyList());
+    when(logService.clientExists("clientB")).thenReturn(false);
+
+    mockMvc.perform(get("/security/suspicious-ips/clientB"))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("Error: clientId not found"));
+
+    verify(logService, times(0)).getIpsWithManyAuthErrors("clientB");
   }
 }
