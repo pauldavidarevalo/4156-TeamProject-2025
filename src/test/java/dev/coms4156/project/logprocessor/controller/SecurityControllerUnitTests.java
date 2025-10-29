@@ -15,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 /**
  * This class contains the unit tests for the SecurityController class.
@@ -38,10 +40,14 @@ public class SecurityControllerUnitTests {
     List<Map<String, Object>> mockSuspiciousIps = new ArrayList<>();
     mockSuspiciousIps.add(mockMap);
 
+    when(logService.clientExists("clientA")).thenReturn(true);
     when(logService.getIpsWithManyAuthErrors("clientA")).thenReturn(mockSuspiciousIps);
 
-    Object result = securityController.getSuspiciousIps("clientA");
-    assertEquals(mockSuspiciousIps, result);
+    ResponseEntity<?> result = securityController.getSuspiciousIps("clientA");
+    // controller now wraps the payload in a ResponseEntity — assert body unchanged
+    // and status OK
+    assertEquals(mockSuspiciousIps, result.getBody());
+    assertEquals(HttpStatus.OK, result.getStatusCode());
     verify(logService, times(1)).getIpsWithManyAuthErrors("clientA");
   }
 }

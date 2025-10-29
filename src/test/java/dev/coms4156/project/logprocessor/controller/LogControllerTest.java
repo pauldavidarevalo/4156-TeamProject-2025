@@ -1,6 +1,7 @@
 package dev.coms4156.project.logprocessor.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
@@ -68,6 +69,45 @@ class LogControllerTest {
     verify(logService, times(1)).processLogFile(any(), eq("clientA"));
   }
 
+  /** Blank clientId should return 400 and error message. */
+  @Test
+  void testUploadLogMissingClientId() throws Exception {
+    MockMultipartFile mockFile =
+        new MockMultipartFile("file", "log.log", "text/plain", "dummy data".getBytes());
+
+    mockMvc.perform(multipart("/logs/upload")
+          .file(mockFile)
+          .param("clientId", "  "))
+          .andExpect(status().isBadRequest())
+          .andExpect(content().string("clientId cannot be blank."));
+  }
+
+  /** Blank file part should return 400 and error message. */
+  @Test
+  void testUploadLogMissingFilePart() throws Exception {
+    MockMultipartFile mockFile =
+            new MockMultipartFile("file", "log.log", "text/plain", "".getBytes());
+
+    mockMvc.perform(multipart("/logs/upload")
+          .file(mockFile)
+          .param("clientId", "clientA"))
+          .andExpect(status().isBadRequest())
+          .andExpect(content().string("file cannot be empty."));
+  }
+
+  /** Wrong extension should return 400 and error message. */
+  @Test
+  void testUploadLogWrongExtension() throws Exception {
+    MockMultipartFile mockFile =
+        new MockMultipartFile("file", "file.txt", "text/plain", "dummy data".getBytes());
+
+    mockMvc.perform(multipart("/logs/upload")
+        .file(mockFile)
+        .param("clientId", "clientA"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(org.hamcrest.Matchers.is("only .log files are accepted.")));
+  }
+
   /** LogService throws an exception. */
   @Test
   void testUploadLogException() throws Exception {
@@ -81,7 +121,7 @@ class LogControllerTest {
     mockMvc.perform(multipart("/logs/upload")
                     .file(mockFile)
                     .param("clientId", "clientB"))
-            .andExpect(status().isOk())
+            .andExpect(status().isBadRequest())
             .andExpect(content().string(
                     org.hamcrest.Matchers.containsString(
                             "Error processing log file: Parsing failed")));

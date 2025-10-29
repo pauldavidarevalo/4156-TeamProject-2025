@@ -82,12 +82,25 @@ class AnalyticsControllerTest {
     mockData.put("2025-10-20 14:00:00", 2);
 
     when(logService.getRequestCountsByHour("clientA")).thenReturn(mockData);
+    when(logService.clientExists("clientA")).thenReturn(true);
 
     mockMvc.perform(get("/analytics/timeseries/requests/clientA"))
         .andExpect(status().isOk())
         .andExpect(content().json("{\"2025-10-20 13:00:00\":5,\"2025-10-20 14:00:00\":2}"));
 
     verify(logService, times(1)).getRequestCountsByHour("clientA");
+  }
+
+  /** Test /analytics/timeseries/requests/{clientId} with client not existing. */
+  @Test
+  void testGetRequestCountsByHourReturnsDataWhenClientDoesNotExist() throws Exception {
+    when(logService.clientExists("clientA")).thenReturn(false);
+
+    mockMvc.perform(get("/analytics/timeseries/requests/clientA"))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("Error: clientId not found"));
+
+    verify(logService, times(0)).getRequestCountsByHour("clientA");
   }
 
   /** Test /analytics/timeseries/error-counts endpoint. */
@@ -104,6 +117,7 @@ class AnalyticsControllerTest {
     mockData.put("2025-10-20 14:00:00", hour2);
 
     when(logService.getErrorCountsByHour("clientA")).thenReturn(mockData);
+    when(logService.clientExists("clientA")).thenReturn(true);
 
     mockMvc.perform(get("/analytics/timeseries/error-counts/clientA"))
         .andExpect(status().isOk())
@@ -112,5 +126,17 @@ class AnalyticsControllerTest {
             + "\"2025-10-20 14:00:00\":{\"4xx\":2,\"5xx\":0}}"));
 
     verify(logService, times(1)).getErrorCountsByHour("clientA");
+  }
+
+  /** Test /analytics/timeseries/error-counts with client not existing. */
+  @Test
+  void testGetErrorCountsByHourReturnsDataWhenClientDoesNotExist() throws Exception {
+    when(logService.clientExists("clientA")).thenReturn(false);
+
+    mockMvc.perform(get("/analytics/timeseries/error-counts/clientA"))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("Error: clientId not found"));
+
+    verify(logService, times(0)).getErrorCountsByHour("clientA");
   }
 }

@@ -1,5 +1,6 @@
 package dev.coms4156.project.logprocessor.controller;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -29,32 +30,34 @@ public class LogController {
 
   /**
    * For client log upload into service.
+   * Returns 200 OK on success, 400 BAD REQUEST if clientId or file are blank or file
+   * cannot be parsed as a .log file.
    *
    * @param clientId ID input by the client to differentiate rows in the database
    * @param file apache log file in simple format to be parsed
    * @return confirmation message
    */
   @PostMapping("/upload")
-  public String uploadLog(@RequestParam("clientId") String clientId,
+  public ResponseEntity<?> uploadLog(@RequestParam("clientId") String clientId,
                           @RequestParam("file") MultipartFile file) {
-    if (clientId == null || clientId.isBlank()) {
-      throw new IllegalArgumentException("clientId is required.");
+    if (clientId.isBlank()) {
+      return new ResponseEntity<>("clientId cannot be blank.", BAD_REQUEST);
     }
 
-    if (file == null || file.isEmpty()) {
-      throw new IllegalArgumentException("file is required.");
+    if (file.isEmpty()) {
+      return new ResponseEntity<>("file cannot be empty.", BAD_REQUEST);
     }
 
     String filename = file.getOriginalFilename();
     if (filename == null || !filename.toLowerCase(Locale.US).endsWith(".log")) {
-      throw new IllegalArgumentException("only .log files are accepted.");
+      return new ResponseEntity<>("only .log files are accepted.", BAD_REQUEST);
     }
     try {
       logService.processLogFile(file.getInputStream(), clientId);
-      return "Log file processed successfully.";
+      return new ResponseEntity<>("Log file processed successfully.", OK);
     } catch (Exception e) {
       e.printStackTrace();
-      return "Error processing log file: " + e.getMessage();
+      return new ResponseEntity<>("Error processing log file: " + e.getMessage(), BAD_REQUEST);
     }
   }
 
