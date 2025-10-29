@@ -27,6 +27,9 @@ Make sure to run and install the following:
 - If you wish to run the style checker, you can run the command "mvn checkstyle:check" to see the code style results on the command terminal or the command "mvn checkstyle:checkstyle" if you wish to generate the report.
 - Note: This project was run on a Windows computer, so the instructions might be a little different for Mac computers.
 
+## Testing endpoints from first iteration
+To test in postman, open a workspace in postman and select Import -> Select File -> select "Log Analytics Service.postman_collection.json" in the top level of this repo.
+
 ## Running Tests
 The unit tests are located in the "src/test/java/dev/coms4156/project/logprocessor" directory and
 cover many different branches for the LogEntry model, LogService, LogEntryRepository, controller classes. You should first
