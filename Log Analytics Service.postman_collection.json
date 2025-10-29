@@ -8,7 +8,7 @@
 	},
 	"item": [
 		{
-			"name": "Upload Log File",
+			"name": "/upload",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -18,7 +18,7 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "xdZdOhBPu/sampleApacheSimple.log"
+							"src": "/C:/gitRepos/4156-TeamProject-2025/sampleLogs/sampleApacheSimple.log"
 						},
 						{
 							"key": "clientId",
@@ -38,12 +38,13 @@
 						"logs",
 						"upload"
 					]
-				}
+				},
+				"description": "You must upload a log file from the sampleLogs directory in the repo"
 			},
 			"response": []
 		},
 		{
-			"name": "/statusCodeCounts good clientId",
+			"name": "/statusCodeCounts",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -69,28 +70,98 @@
 			"response": []
 		},
 		{
-			"name": "/statusCodeCount bad clientId",
+			"name": "/top-endpoints",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/logs/statusCodeCounts?clientId=badClient",
+					"raw": "http://localhost:8080/analytics/top-endpoints",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"logs",
-						"statusCodeCounts"
-					],
-					"query": [
-						{
-							"key": "clientId",
-							"value": "badClient"
-						}
+						"analytics",
+						"top-endpoints"
 					]
 				}
+			},
+			"response": [
+				{
+					"name": "/top-endpoints",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/analytics/top-endpoints",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"analytics",
+								"top-endpoints"
+							]
+						}
+					},
+					"_postman_previewlanguage": "",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				}
+			]
+		},
+		{
+			"name": "/timeseries/requests/",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/analytics/timeseries/requests/client123",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"analytics",
+						"timeseries",
+						"requests",
+						"client123"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/timeseries/error-counts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/analytics/timeseries/error-counts/client123",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"analytics",
+						"timeseries",
+						"error-counts",
+						"client123"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/security/suspicious-ips",
+			"request": {
+				"method": "GET",
+				"header": []
 			},
 			"response": []
 		}
