@@ -14,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 
 /**
@@ -39,8 +41,9 @@ public class LogControllerUnitTests {
     );
     doNothing().when(logService).processLogFile(any(ByteArrayInputStream.class), eq(clientId));
 
-    String result = logController.uploadLog(clientId, file);
-    assertEquals("Log file processed successfully.", result);
+    ResponseEntity<?> result = logController.uploadLog(clientId, file);
+    assertEquals("Log file processed successfully.", result.getBody());
+    assertEquals(HttpStatus.OK, result.getStatusCode());
   }
 
   @Test
@@ -56,7 +59,8 @@ public class LogControllerUnitTests {
     doThrow(new IOException(errorMessage)).when(logService)
             .processLogFile(any(ByteArrayInputStream.class), eq(clientId));
 
-    String result = logController.uploadLog(clientId, file);
-    assertEquals("Error processing log file: " + errorMessage, result);
+    ResponseEntity<?> result = logController.uploadLog(clientId, file);
+    assertEquals("Error processing log file: " + errorMessage, result.getBody());
+    assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
   }
 }
