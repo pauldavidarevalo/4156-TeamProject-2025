@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -127,8 +128,8 @@ class LogServiceTest {
   @Test
   void testGetRequestCountsByHour() {
     List<Object[]> mockRows = new ArrayList<>();
-    mockRows.add(new Object[]{"2025-10-20 13:00:00", 5L});
-    mockRows.add(new Object[]{"2025-10-20 14:00:00", 2L});
+    mockRows.add(new Object[]{LocalDateTime.of(2025, 10, 20, 13, 0), 5L});
+    mockRows.add(new Object[]{LocalDateTime.of(2025, 10, 20, 14, 0), 2L});
 
     when(repo.countRequestsByHour("clientA")).thenReturn(mockRows);
 
@@ -143,8 +144,8 @@ class LogServiceTest {
   @Test
   void testGetErrorCountsByHour() {
     List<Object[]> mockRows = new ArrayList<>();
-    mockRows.add(new Object[]{"2025-10-20 13:00:00", 3L, 1L});
-    mockRows.add(new Object[]{"2025-10-20 14:00:00", 2L, 0L});
+    mockRows.add(new Object[]{LocalDateTime.of(2025, 10, 20, 13, 0), 3L, 1L});
+    mockRows.add(new Object[]{LocalDateTime.of(2025, 10, 20, 14, 0), 2L, 0L});
 
     when(repo.countErrorCodesByHour("clientA")).thenReturn(mockRows);
 

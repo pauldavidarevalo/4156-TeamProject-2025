@@ -108,13 +108,13 @@ public class LogService {
   public Map<String, Integer> getRequestCountsByHour(String clientId) {
     List<Object[]> rows = repo.countRequestsByHour(clientId);
     Map<String, Integer> result = new LinkedHashMap<>();
+    java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00");
     for (Object[] row : rows) {
-      String hour = (String) row[0];
-      if (hour == null) {
-        continue; // optional, just to be safe
-      }
-      Number count = (Number) row[1]; // ✅ Works for Integer or Long
-      result.put(hour, count.intValue());
+      // Repository JPQL returns hourWindow as LocalDateTime -> format to string key
+      java.time.LocalDateTime ldt = (java.time.LocalDateTime) row[0];
+      String hourStr = ldt.truncatedTo(java.time.temporal.ChronoUnit.HOURS).format(formatter);
+      Number count = (Number) row[1]; // Works for Integer or Long
+      result.put(hourStr, count.intValue());
     }
     return result;
   }
@@ -130,12 +130,11 @@ public class LogService {
   public Map<String, Map<String, Integer>> getErrorCountsByHour(String clientId) {
     List<Object[]> rows = repo.countErrorCodesByHour(clientId);
     Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
+    java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00");
 
     for (Object[] row : rows) {
-      String hour = (String) row[0];
-      if (hour == null) {
-        continue; // ✅ Skip null hours to avoid JSON null key crash
-      }
+      java.time.LocalDateTime ldt = (java.time.LocalDateTime) row[0];
+      String hourStr = ldt.truncatedTo(java.time.temporal.ChronoUnit.HOURS).format(formatter);
 
       Long count4xx = ((Number) row[1]).longValue();
       Long count5xx = ((Number) row[2]).longValue();
@@ -143,7 +142,7 @@ public class LogService {
       Map<String, Integer> inner = new HashMap<>();
       inner.put("4xx", count4xx.intValue());
       inner.put("5xx", count5xx.intValue());
-      result.put(hour, inner);
+      result.put(hourStr, inner);
     }
 
     return result;
