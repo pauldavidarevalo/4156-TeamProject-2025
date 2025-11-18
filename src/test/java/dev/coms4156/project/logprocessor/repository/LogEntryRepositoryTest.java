@@ -4,14 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.coms4156.project.logprocessor.model.LogEntry;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
@@ -95,30 +93,57 @@ class LogEntryRepositoryTest {
   }
 
   @Test
-  @DisplayName("countRequestsByHour should run only in SQLite-compatible environment")
+  @DisplayName("countRequestsByHour should aggregate request counts by hourWindow")
   void testCountRequestsByHour() {
-    try {
-      List<Object[]> results = repo.countRequestsByHour("clientA");
-      // If native query runs, ensure the total of the returned counts 
-      // equals the number of entries for clientA
-      long totalFromQuery = results.stream().mapToLong(r -> (Long) r[1]).sum();
-      long expected = repo.findAll().stream().filter(
-            entry -> "clientA".equals(entry.getClientId())).count();
-      assertThat(totalFromQuery).isEqualTo(expected);
-    } catch (InvalidDataAccessResourceUsageException e) {
-      System.out.println("Skipping countRequestsByHour test (H2 lacks strftime)");
-    }
+    LocalDateTime hour1 = LocalDateTime.of(2025, 10, 19, 12, 0);
+    LocalDateTime hour2 = LocalDateTime.of(2025, 10, 19, 13, 0);
+    
+    repo.save(new LogEntry("client1", "123.456.7.8", "GET", "/home", 200, 100, hour1));
+    repo.save(new LogEntry("client1", "123.456.7.8", "POST", "/upload", 201, 200, hour1.plusMinutes(15)));
+    repo.save(new LogEntry("client1", "123.456.7.9", "GET", "/data", 200, 150, hour1.plusMinutes(30)));
+
+    repo.save(new LogEntry("client1", "123.456.7.8", "GET", "/home", 200, 100, hour2));
+    repo.save(new LogEntry("client1", "123.456.7.9", "DELETE", "/resource", 204, 0, hour2.plusMinutes(45)));
+
+    List<Object[]> results = repo.countRequestsByHour("client1");
+    assertThat(results).hasSize(2);
+    
+    Object[] row1 = results.get(0);
+    assertThat((LocalDateTime) row1[0]).isEqualTo(hour1);
+    assertThat((Long) row1[1]).isEqualTo(3L);
+
+    Object[] row2 = results.get(1);
+    assertThat((LocalDateTime) row2[0]).isEqualTo(hour2);
+    assertThat((Long) row2[1]).isEqualTo(2L);
   }
 
   @Test
-  @DisplayName("countErrorCodesByHour should run only in SQLite-compatible environment")
+  @DisplayName("countErrorCodesByHour should aggregate 4xx and 5xx errors by hourWindow")
   void testCountErrorCodesByHour() {
-    try {
-      List<Object[]> results = repo.countErrorCodesByHour("clientA");
-      assertThat(results).isNotNull();
-    } catch (InvalidDataAccessResourceUsageException e) {
-      System.out.println("Skipping countErrorCodesByHour test (H2 lacks strftime)");
-    }
+    LocalDateTime hour1 = LocalDateTime.of(2025, 10, 19, 12, 0);
+    LocalDateTime hour2 = LocalDateTime.of(2025, 10, 19, 13, 0);
+    // Hour1: 2 4xx, 1 5xx
+    repo.save(new LogEntry("client1", "123.456.7.8", "GET", "/bad1", 404, 100, hour1));
+    repo.save(new LogEntry("client1", "123.456.7.8", "GET", "/bad2", 400, 50, hour1));
+    repo.save(new LogEntry("client1", "123.456.7.8", "GET", "/error", 500, 0, hour1));
+
+    // Hour2: 1 4xx, 2 5xx
+    repo.save(new LogEntry("client1", "123.456.7.8", "GET", "/bad1", 404, 100, hour2));
+    repo.save(new LogEntry("client1", "123.456.7.8", "GET", "/bad2", 500, 50, hour2));
+    repo.save(new LogEntry("client1", "123.456.7.8", "GET", "/error", 500, 0, hour2));
+    
+    List<Object[]> results = repo.countErrorCodesByHour("client1");
+    assertThat(results).hasSize(2);
+    
+    Object[] row1 = results.get(0);
+    assertThat((LocalDateTime) row1[0]).isEqualTo(hour1);
+    assertThat((Long) row1[1]).isEqualTo(2L);
+    assertThat((Long) row1[2]).isEqualTo(1L);
+
+    Object[] row2 = results.get(1);
+    assertThat((LocalDateTime) row2[0]).isEqualTo(hour2);
+    assertThat((Long) row2[1]).isEqualTo(1L);
+    assertThat((Long) row2[2]).isEqualTo(2L);
   }
 
   @Test
@@ -127,25 +152,36 @@ class LogEntryRepositoryTest {
       + "with >= threshold 401/403 errors per hour"
   )
   void testFindIpsWithManyAuthErrors() {
-    LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS);
+    LocalDateTime hour1 = LocalDateTime.of(2025, 10, 19, 12, 0);
+    LocalDateTime hour2 = LocalDateTime.of(2025, 10, 19, 13, 0);
 
+    // Hour1: 5 401 from 123.456.7.89
     for (int i = 0; i < 5; i++) {
       repo.save(new LogEntry(
-          "clientA", "123.456.7.89", "GET", "/login", 401, 100, now.plusMinutes(i)));
+          "clientA", "123.456.7.89", "GET", "/login", 401, 100, hour1.plusMinutes(i)));
     }
-    repo.save(new LogEntry("clientA", "000.000.0.XX", "GET", "/login", 200, 50, now));
-    repo.save(new LogEntry("clientA", "000.000.0.XX", "GET", "/data", 200, 50, now));
+    repo.save(new LogEntry("clientA", "000.000.0.XX", "GET", "/login", 200, 50, hour1));
+    repo.save(new LogEntry("clientA", "000.000.0.XX", "GET", "/data", 200, 50, hour1));
+
+    // Hour2: 5 401 from 987.654.3.21
+    for (int i = 0; i < 5; i++) {
+      repo.save(new LogEntry(
+          "clientA", "987.654.3.21", "GET", "/login", 401, 100, hour2.plusMinutes(i)));
+    }
+    repo.save(new LogEntry("clientA", "000.000.0.XX", "GET", "/login", 200, 50, hour2));
+    repo.save(new LogEntry("clientA", "000.000.0.XX", "GET", "/data", 200, 50, hour2));
 
     List<Object[]> results = repo.findIpsWithManyAuthErrors(3, "clientA");
+    assertThat(results).hasSize(2);
+    
+    Object[] row1 = results.get(0);
+    assertThat((String) row1[0]).isEqualTo("123.456.7.89");
+    assertThat((LocalDateTime) row1[1]).isEqualTo(hour1);
+    assertThat((Long) row1[2]).isEqualTo(5L);
 
-    assertThat(results).isNotEmpty();
-    Object[] row = results.get(0);
-    String ip = (String) row[0];
-    LocalDateTime hourWindow = (LocalDateTime) row[1];
-    Long count = (Long) row[2];
-
-    assertThat(ip).isEqualTo("123.456.7.89");
-    assertThat(hourWindow).isEqualTo(now);
-    assertThat(count).isGreaterThanOrEqualTo(5);
+    Object[] row2 = results.get(1);
+    assertThat((String) row2[0]).isEqualTo("987.654.3.21");
+    assertThat((LocalDateTime) row2[1]).isEqualTo(hour2);
+    assertThat((Long) row2[2]).isEqualTo(5L);
   }
 }
