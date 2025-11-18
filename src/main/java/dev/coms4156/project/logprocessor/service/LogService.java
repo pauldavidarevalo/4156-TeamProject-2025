@@ -123,7 +123,6 @@ public class LogService {
     Map<String, Integer> result = new LinkedHashMap<>();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00");
     for (Object[] row : rows) {
-      // Repository JPQL returns hourWindow as LocalDateTime -> format to string key
       LocalDateTime ldt = (LocalDateTime) row[0];
       String hourStr = ldt.truncatedTo(ChronoUnit.HOURS).format(formatter);
       Number count = (Number) row[1]; // Works for Integer or Long

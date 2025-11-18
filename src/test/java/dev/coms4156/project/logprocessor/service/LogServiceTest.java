@@ -15,14 +15,13 @@ import dev.coms4156.project.logprocessor.model.LogEntry;
 import dev.coms4156.project.logprocessor.repository.LogEntryRepository;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -87,8 +86,8 @@ class LogServiceTest {
     String rawTimestamp = "12/Oct/2025:06:25:24 +0000";
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
     OffsetDateTime odt = OffsetDateTime.parse(rawTimestamp, dtf);
-    LocalDateTime expectedTimestamp = odt.toLocalDateTime();
-    String expectedTimestampString = expectedTimestamp.toString();  // ISO-8601 string
+    final LocalDateTime expectedTimestamp = odt.toLocalDateTime();
+    final String expectedTimestampString = expectedTimestamp.toString();  // ISO-8601 string
 
     InputStream stream = new ByteArrayInputStream(logLine.getBytes());
     service.processLogFile(stream, "client123");
@@ -114,7 +113,6 @@ class LogServiceTest {
     InputStream stream = new ByteArrayInputStream(logLine.getBytes());
 
     verify(repo, never()).save(any());
-        // Act & Assert
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
         () -> service.processLogFile(stream, "badTimestampClient")
