@@ -6,9 +6,13 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,14 +53,23 @@ public class LogService {
         Matcher matcher = LOG_PATTERN.matcher(line);
         if (matcher.find()) {
           String ip = matcher.group(1);
-          //String time = matcher.group(2);
+          String time = matcher.group(2);
           String method = matcher.group(3);
           String endpoint = matcher.group(4);
           int status = Integer.parseInt(matcher.group(5));
           long size = "-".equals(matcher.group(6)) ? 0 : Long.parseLong(matcher.group(6));
 
-          // Simplified timestamp parsing
-          LocalDateTime timestamp = LocalDateTime.now();
+          OffsetDateTime offsetDateTime;
+          try {
+            DateTimeFormatter dtf =
+                  DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+            offsetDateTime = OffsetDateTime.parse(time, dtf);
+            System.out.println("Timestamp: " + offsetDateTime);
+          } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to parse timestamp: " + time, e);
+          }
+          // drops timezone
+          LocalDateTime timestamp = offsetDateTime.toLocalDateTime();
 
           LogEntry entry = new LogEntry(clientId, ip, method, endpoint, status, size, timestamp);
           repo.save(entry);
@@ -108,11 +121,11 @@ public class LogService {
   public Map<String, Integer> getRequestCountsByHour(String clientId) {
     List<Object[]> rows = repo.countRequestsByHour(clientId);
     Map<String, Integer> result = new LinkedHashMap<>();
-    java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00");
     for (Object[] row : rows) {
       // Repository JPQL returns hourWindow as LocalDateTime -> format to string key
-      java.time.LocalDateTime ldt = (java.time.LocalDateTime) row[0];
-      String hourStr = ldt.truncatedTo(java.time.temporal.ChronoUnit.HOURS).format(formatter);
+      LocalDateTime ldt = (LocalDateTime) row[0];
+      String hourStr = ldt.truncatedTo(ChronoUnit.HOURS).format(formatter);
       Number count = (Number) row[1]; // Works for Integer or Long
       result.put(hourStr, count.intValue());
     }
@@ -130,11 +143,11 @@ public class LogService {
   public Map<String, Map<String, Integer>> getErrorCountsByHour(String clientId) {
     List<Object[]> rows = repo.countErrorCodesByHour(clientId);
     Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
-    java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00");
 
     for (Object[] row : rows) {
-      java.time.LocalDateTime ldt = (java.time.LocalDateTime) row[0];
-      String hourStr = ldt.truncatedTo(java.time.temporal.ChronoUnit.HOURS).format(formatter);
+      LocalDateTime ldt = (LocalDateTime) row[0];
+      String hourStr = ldt.truncatedTo(ChronoUnit.HOURS).format(formatter);
 
       Long count4xx = ((Number) row[1]).longValue();
       Long count5xx = ((Number) row[2]).longValue();

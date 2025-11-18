@@ -35,10 +35,14 @@ public class LogEntry {
   @Column(nullable = false)
   private LocalDateTime hourWindow;
 
+  @Column(nullable = false)
+  private LocalDateTime timestamp;
+
+  @Column(nullable = false)
+  private String timestampString;
 
   private int statusCode;
   private long responseSize;
-  private LocalDateTime timestamp;
 
   /**
    * This is the empty LogEntry constructor.
@@ -67,6 +71,7 @@ public class LogEntry {
     this.statusCode = statusCode;
     this.responseSize = responseSize;
     this.timestamp = timestamp;
+    this.timestampString = timestamp.toString();
     this.hourWindow = timestamp.truncatedTo(ChronoUnit.HOURS);
   }
 
@@ -103,6 +108,10 @@ public class LogEntry {
     return timestamp;
   }
 
+  public String getTimestampString() {
+    return timestampString;
+  }
+
   public LocalDateTime getHourWindow() {
     return hourWindow;
   }
@@ -134,5 +143,9 @@ public class LogEntry {
 
   public void setTimestamp(LocalDateTime timestamp) {
     this.timestamp = timestamp;
+  }
+
+  public void setTimestampString(String timestampString) {
+    this.timestampString = timestampString;
   }
 }
