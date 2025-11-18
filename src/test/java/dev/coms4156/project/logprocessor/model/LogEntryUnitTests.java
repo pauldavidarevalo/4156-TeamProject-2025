@@ -49,6 +49,7 @@ public class LogEntryUnitTests {
     assertEquals(statusCode, logEntry.getStatusCode());
     assertEquals(responseSize, logEntry.getResponseSize());
     assertEquals(timestamp, logEntry.getTimestamp());
+    assertEquals(timestamp.toString(), logEntry.getTimestampString());
     assertEquals(expectedHourWindow, logEntry.getHourWindow());
   }
 }

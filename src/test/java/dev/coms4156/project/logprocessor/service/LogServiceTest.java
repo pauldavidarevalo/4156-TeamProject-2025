@@ -3,8 +3,9 @@ package dev.coms4156.project.logprocessor.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -16,8 +17,12 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -79,8 +84,13 @@ class LogServiceTest {
   @Test
   void testProcessLogFileParsesAndSaves() throws Exception {
     String logLine = "XXX.0.0.1 - - [12/Oct/2025:06:25:24 +0000] \"GET /home HTTP/1.1\" 200 512";
-    InputStream stream = new ByteArrayInputStream(logLine.getBytes());
+    String rawTimestamp = "12/Oct/2025:06:25:24 +0000";
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+    OffsetDateTime odt = OffsetDateTime.parse(rawTimestamp, dtf);
+    LocalDateTime expectedTimestamp = odt.toLocalDateTime();
+    String expectedTimestampString = expectedTimestamp.toString();  // ISO-8601 string
 
+    InputStream stream = new ByteArrayInputStream(logLine.getBytes());
     service.processLogFile(stream, "client123");
 
     ArgumentCaptor<LogEntry> captor = ArgumentCaptor.forClass(LogEntry.class);
@@ -93,7 +103,27 @@ class LogServiceTest {
     assertEquals("/home", entry.getEndpoint());
     assertEquals(200, entry.getStatusCode());
     assertEquals(512L, entry.getResponseSize());
+    assertEquals(expectedTimestamp, entry.getTimestamp());
+    assertEquals(expectedTimestampString, entry.getTimestampString());
     assertNotNull(entry.getTimestamp());
+  }
+
+  @Test
+  void testProcessLogFileBadTimestamp() throws Exception {
+    String logLine = "XXX.0.0.1 - - [12/Oct/2025:06:25:24] \"GET /home HTTP/1.1\" 200 512";
+    InputStream stream = new ByteArrayInputStream(logLine.getBytes());
+
+    verify(repo, never()).save(any());
+        // Act & Assert
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> service.processLogFile(stream, "badTimestampClient")
+    );
+    verify(repo, never()).save(any());
+
+    assertTrue(
+        exception.getMessage().contains("Failed to parse timestamp")
+    );
   }
 
   @Test
