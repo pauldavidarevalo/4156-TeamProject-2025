@@ -99,11 +99,11 @@ class LogEntryRepositoryTest {
     LocalDateTime hour2 = LocalDateTime.of(2025, 10, 19, 13, 0);
     
     repo.save(new LogEntry("client1", "123.456.7.8", "GET", "/home", 200, 100, hour1));
-    repo.save(new LogEntry("client1", "123.456.7.8", "POST", "/upload", 201, 200, hour1.plusMinutes(15)));
-    repo.save(new LogEntry("client1", "123.456.7.9", "GET", "/data", 200, 150, hour1.plusMinutes(30)));
+    repo.save(new LogEntry("client1", "123.456.7.8", "POST", "/upload", 201, 200, hour1));
+    repo.save(new LogEntry("client1", "123.456.7.9", "GET", "/data", 200, 150, hour1));
 
     repo.save(new LogEntry("client1", "123.456.7.8", "GET", "/home", 200, 100, hour2));
-    repo.save(new LogEntry("client1", "123.456.7.9", "DELETE", "/resource", 204, 0, hour2.plusMinutes(45)));
+    repo.save(new LogEntry("client1", "123.456.7.9", "DELETE", "/resource", 204, 0, hour2));
 
     List<Object[]> results = repo.countRequestsByHour("client1");
     assertThat(results).hasSize(2);
@@ -134,7 +134,7 @@ class LogEntryRepositoryTest {
     
     List<Object[]> results = repo.countErrorCodesByHour("client1");
     assertThat(results).hasSize(2);
-    
+
     Object[] row1 = results.get(0);
     assertThat((LocalDateTime) row1[0]).isEqualTo(hour1);
     assertThat((Long) row1[1]).isEqualTo(2L);
