@@ -64,7 +64,6 @@ public class LogService {
             DateTimeFormatter dtf =
                   DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
             offsetDateTime = OffsetDateTime.parse(time, dtf);
-            System.out.println("Timestamp: " + offsetDateTime);
           } catch (Exception e) {
             throw new IllegalArgumentException("Failed to parse timestamp: " + time, e);
           }
