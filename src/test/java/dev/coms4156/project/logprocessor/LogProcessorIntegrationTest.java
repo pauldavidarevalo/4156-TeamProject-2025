@@ -24,7 +24,7 @@ import org.springframework.util.MultiValueMap;
     "spring.jpa.database-platform=org.hibernate.community.dialect.SQLiteDialect",
     "spring.jpa.hibernate.ddl-auto=create"
 })
-class LogProcessorApplicationTests {
+class LogProcessorIntegrationTest {
 
   @Autowired
   private TestRestTemplate restTemplate;
