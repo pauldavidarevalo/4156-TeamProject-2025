@@ -9,14 +9,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
@@ -24,6 +29,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS) // allows BeforeAll to be non-static, which is necessary for using restTemplate
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:sqlite:target/test-logs.db",
     "spring.datasource.driver-class-name=org.sqlite.JDBC",
@@ -39,16 +45,12 @@ class LogProcessorIntegrationTest {
   private static final String EXPECTED_HOUR = "2025-10-19T12:00";
 
   @BeforeAll
-  static void cleanupBeforeAllTests() {
-    // Clean up test DB before all tests run
+  void uploadTestLogs() throws Exception {
     File testDb = new File(TEST_DB_PATH);
     if (testDb.exists()) {
       testDb.delete();
     }
-  }
 
-  @BeforeEach
-  void uploadTestLogs() throws Exception {
     Path sample = Path.of("sampleLogs", "sampleApacheSimple.log");
     
     MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -87,24 +89,23 @@ class LogProcessorIntegrationTest {
   }
 
   @AfterEach
-  void cleanupAfterTest() {
-    // Remove test DB after test completes
-    // Comment out to inspect DB file after test
-    /*
-    File testDb = new File(TEST_DB_PATH);
-    if (testDb.exists()) {
-      testDb.delete();
-    }
-    */
+  void cleanup() {
+    // Leave behind target/test-logs.db as proof the test uses persistent storage
+    // File testDb = new File(TEST_DB_PATH);
+    // if (testDb.exists()) {
+    //   testDb.delete();
+    // }
   }
 
   @Test
   void testStatusCodeCountsForClientA() {
-    @SuppressWarnings("unchecked")
     ResponseEntity<Map<String, Integer>> statusResponseA =
-        (ResponseEntity<Map<String, Integer>>) (ResponseEntity<?>) 
-        restTemplate.getForEntity("/logs/statusCodeCounts?clientId=clientA",
-            Map.class);
+    restTemplate.exchange(
+        "/logs/statusCodeCounts?clientId=clientA",
+        HttpMethod.GET,
+        null,
+        new ParameterizedTypeReference<Map<String, Integer>>() {}
+    );
     assertThat(statusResponseA.getStatusCode()).isEqualTo(HttpStatus.OK);
     Map<String, Integer> statusCounts = statusResponseA.getBody();
     assertThat(statusCounts).containsEntry("200", 3);
@@ -114,11 +115,13 @@ class LogProcessorIntegrationTest {
 
   @Test
   void testStatusCodeCountsForClientB() {
-    @SuppressWarnings("unchecked")
     ResponseEntity<Map<String, Integer>> statusResponseB =
-        (ResponseEntity<Map<String, Integer>>) (ResponseEntity<?>) 
-        restTemplate.getForEntity("/logs/statusCodeCounts?clientId=clientB",
-            Map.class);
+    restTemplate.exchange(
+        "/logs/statusCodeCounts?clientId=clientB",
+        HttpMethod.GET,
+        null,
+        new ParameterizedTypeReference<Map<String, Integer>>() {}
+    );
     assertThat(statusResponseB.getStatusCode()).isEqualTo(HttpStatus.OK);
     Map<String, Integer> statusCounts = statusResponseB.getBody();
     assertThat(statusCounts).containsEntry("200", 3);
@@ -128,10 +131,13 @@ class LogProcessorIntegrationTest {
 
   @Test
   void testTimeseriesRequests() {
-    @SuppressWarnings("unchecked")
     ResponseEntity<Map<String, Integer>> timeseriesRequestsResponse =
-      (ResponseEntity<Map<String, Integer>>) (ResponseEntity<?>)
-      restTemplate.getForEntity("/analytics/timeseries/requests/clientA", Map.class);
+    restTemplate.exchange(
+        "/analytics/timeseries/requests/clientA",
+        HttpMethod.GET,
+        null,
+        new ParameterizedTypeReference<Map<String, Integer>>() {}
+    );
     assertThat(timeseriesRequestsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     Map<String, Integer> requestsMap = timeseriesRequestsResponse.getBody();
     assertThat(requestsMap).containsEntry(EXPECTED_HOUR, 5);
@@ -139,10 +145,13 @@ class LogProcessorIntegrationTest {
 
   @Test
   void testTimeseriesErrorCounts() {
-    @SuppressWarnings("unchecked")
     ResponseEntity<Map<String, Map<String, Integer>>> timeseriesErrorsResponse =
-        (ResponseEntity<Map<String, Map<String, Integer>>>) (ResponseEntity<?>)
-        restTemplate.getForEntity("/analytics/timeseries/error-counts/clientA", Map.class);
+    restTemplate.exchange(
+        "/analytics/timeseries/error-counts/clientA",
+        HttpMethod.GET,
+        null,
+        new ParameterizedTypeReference<Map<String, Map<String, Integer>>>() {}
+    );
     assertThat(timeseriesErrorsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     Map<String, Map<String, Integer>> errorsMap = timeseriesErrorsResponse.getBody();
     Map<String, Integer> inner = errorsMap.get(EXPECTED_HOUR);
@@ -152,10 +161,13 @@ class LogProcessorIntegrationTest {
 
   @Test
   void testSuspiciousIps() {
-    @SuppressWarnings("unchecked")
     ResponseEntity<List<Map<String, Object>>> suspiciousIpsResponse =
-        (ResponseEntity<List<Map<String, Object>>>) (ResponseEntity<?>)
-        restTemplate.getForEntity("/security/suspicious-ips/susClient", List.class);
+    restTemplate.exchange(
+        "/security/suspicious-ips/susClient",
+        HttpMethod.GET,
+        null,
+        new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+    );
     assertThat(suspiciousIpsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     List<Map<String, Object>> suspiciousIpsList = suspiciousIpsResponse.getBody();
 
