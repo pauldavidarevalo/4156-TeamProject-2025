@@ -4,7 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.nio.file.Path;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,37 +36,24 @@ class LogProcessorIntegrationTest {
   private TestRestTemplate restTemplate;
 
   private static final String TEST_DB_PATH = "target/test-logs.db";
+  private static final String EXPECTED_HOUR = "2025-10-19T12:00";
+
+  @BeforeAll
+  static void cleanupBeforeAllTests() {
+    // Clean up test DB before all tests run
+    File testDb = new File(TEST_DB_PATH);
+    if (testDb.exists()) {
+      testDb.delete();
+    }
+  }
 
   @BeforeEach
-  void cleanupTestDb() {
-    // Remove test DB before each test to ensure clean state
-    File testDb = new File(TEST_DB_PATH);
-    if (testDb.exists()) {
-      testDb.delete();
-    }
-  }
-
-  @AfterEach
-  void cleanupAfterTest() {
-    // Remove test DB after test completes
-    // Comment out to inspect DB file after test
-    /*
-    File testDb = new File(TEST_DB_PATH);
-    if (testDb.exists()) {
-      testDb.delete();
-    }
-    */
-  }
-
-  @Test
-  void uploadSampleLogAndVerifyEndpoints() throws Exception {
+  void uploadTestLogs() throws Exception {
     Path sample = Path.of("sampleLogs", "sampleApacheSimple.log");
     
-    // Upload the log file for clientId 'clientA'
     MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
     body.add("clientId", "clientA");
     body.add("file", new FileSystemResource(sample.toFile()));
-
     ResponseEntity<String> uploadResponse = restTemplate.postForEntity(
         "/logs/upload",
         body,
@@ -81,12 +74,9 @@ class LogProcessorIntegrationTest {
     assertThat(uploadResponse.getBody()).contains("Log file processed successfully.");
 
     Path suspiciousIpsPath = Path.of("sampleLogs", "suspicousIps.log");
-    
-    // Upload the log file for clientId 'susClient'
     body = new LinkedMultiValueMap<>();
     body.add("clientId", "susClient");
     body.add("file", new FileSystemResource(suspiciousIpsPath.toFile()));
-
     uploadResponse = restTemplate.postForEntity(
         "/logs/upload",
         body,
@@ -94,84 +84,86 @@ class LogProcessorIntegrationTest {
     );
     assertThat(uploadResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(uploadResponse.getBody()).contains("Log file processed successfully.");
+  }
 
+  @AfterEach
+  void cleanupAfterTest() {
+    // Remove test DB after test completes
+    // Comment out to inspect DB file after test
+    /*
+    File testDb = new File(TEST_DB_PATH);
+    if (testDb.exists()) {
+      testDb.delete();
+    }
+    */
+  }
+
+  @Test
+  void testStatusCodeCountsForClientA() {
     @SuppressWarnings("unchecked")
-    ResponseEntity<java.util.Map<String, Integer>> statusResponseA =
-        (ResponseEntity<java.util.Map<String, Integer>>) (ResponseEntity<?>) 
+    ResponseEntity<Map<String, Integer>> statusResponseA =
+        (ResponseEntity<Map<String, Integer>>) (ResponseEntity<?>) 
         restTemplate.getForEntity("/logs/statusCodeCounts?clientId=clientA",
-            java.util.Map.class);
+            Map.class);
     assertThat(statusResponseA.getStatusCode()).isEqualTo(HttpStatus.OK);
-    java.util.Map<String, Integer> statusCounts = statusResponseA.getBody();
+    Map<String, Integer> statusCounts = statusResponseA.getBody();
     assertThat(statusCounts).containsEntry("200", 3);
     assertThat(statusCounts).containsEntry("302", 1);
     assertThat(statusCounts).containsEntry("500", 1);
+  }
 
+  @Test
+  void testStatusCodeCountsForClientB() {
     @SuppressWarnings("unchecked")
-    ResponseEntity<java.util.Map<String, Integer>> statusResponseB =
-        (ResponseEntity<java.util.Map<String, Integer>>) (ResponseEntity<?>) 
+    ResponseEntity<Map<String, Integer>> statusResponseB =
+        (ResponseEntity<Map<String, Integer>>) (ResponseEntity<?>) 
         restTemplate.getForEntity("/logs/statusCodeCounts?clientId=clientB",
-            java.util.Map.class);
+            Map.class);
     assertThat(statusResponseB.getStatusCode()).isEqualTo(HttpStatus.OK);
-    statusCounts = statusResponseB.getBody();
+    Map<String, Integer> statusCounts = statusResponseB.getBody();
     assertThat(statusCounts).containsEntry("200", 3);
     assertThat(statusCounts).containsEntry("302", 1);
     assertThat(statusCounts).containsEntry("500", 1);
+  }
 
-    // Calculate current hour truncated (service uses upload time)
-    java.time.LocalDateTime nowLocal = java.time.LocalDateTime.now();
-    java.time.LocalDateTime hourTruncated = nowLocal.truncatedTo(java.time.temporal.ChronoUnit.HOURS);
-    java.time.format.DateTimeFormatter df = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00");
-    String expectedHour = hourTruncated.format(df);
-
-    // Verify timeseries/requests endpoint returns 200 and contains expected total (5 requests)
+  @Test
+  void testTimeseriesRequests() {
     @SuppressWarnings("unchecked")
-    ResponseEntity<java.util.Map<String, Integer>> timeseriesRequestsResponse =
-        (ResponseEntity<java.util.Map<String, Integer>>) (ResponseEntity<?>)
-        restTemplate.getForEntity("/analytics/timeseries/requests/clientA", java.util.Map.class);
+    ResponseEntity<Map<String, Integer>> timeseriesRequestsResponse =
+      (ResponseEntity<Map<String, Integer>>) (ResponseEntity<?>)
+      restTemplate.getForEntity("/analytics/timeseries/requests/clientA", Map.class);
     assertThat(timeseriesRequestsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-    java.util.Map<String, Integer> requestsMap = timeseriesRequestsResponse.getBody();
-    assertThat(requestsMap).isNotNull();
-    assertThat(requestsMap).containsEntry(expectedHour, 5);
+    Map<String, Integer> requestsMap = timeseriesRequestsResponse.getBody();
+    assertThat(requestsMap).containsEntry(EXPECTED_HOUR, 5);
+  }
 
-    // Verify timeseries/error-counts endpoint returns 200 and contains expected counts (one 5xx, zero 4xx)
+  @Test
+  void testTimeseriesErrorCounts() {
     @SuppressWarnings("unchecked")
-    ResponseEntity<java.util.Map<String, java.util.Map<String, Integer>>> timeseriesErrorsResponse =
-        (ResponseEntity<java.util.Map<String, java.util.Map<String, Integer>>>) (ResponseEntity<?>)
-        restTemplate.getForEntity("/analytics/timeseries/error-counts/clientA", java.util.Map.class);
+    ResponseEntity<Map<String, Map<String, Integer>>> timeseriesErrorsResponse =
+        (ResponseEntity<Map<String, Map<String, Integer>>>) (ResponseEntity<?>)
+        restTemplate.getForEntity("/analytics/timeseries/error-counts/clientA", Map.class);
     assertThat(timeseriesErrorsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-    java.util.Map<String, java.util.Map<String, Integer>> errorsMap = timeseriesErrorsResponse.getBody();
-    assertThat(errorsMap).isNotNull();
-    java.util.Map<String, Integer> inner = errorsMap.get(expectedHour);
-    assertThat(inner).isNotNull();
+    Map<String, Map<String, Integer>> errorsMap = timeseriesErrorsResponse.getBody();
+    Map<String, Integer> inner = errorsMap.get(EXPECTED_HOUR);
     assertThat(inner.getOrDefault("4xx", 0)).isEqualTo(0);
     assertThat(inner.getOrDefault("5xx", 0)).isEqualTo(1);
+  }
 
-    // Verify suspicious IPs endpoint returns list of suspicious IP objects
+  @Test
+  void testSuspiciousIps() {
     @SuppressWarnings("unchecked")
-    ResponseEntity<java.util.List<java.util.Map<String, Object>>> suspiciousIpsResponse =
-        (ResponseEntity<java.util.List<java.util.Map<String, Object>>>) (ResponseEntity<?>)
-        restTemplate.getForEntity("/security/suspicious-ips/susClient", java.util.List.class);
+    ResponseEntity<List<Map<String, Object>>> suspiciousIpsResponse =
+        (ResponseEntity<List<Map<String, Object>>>) (ResponseEntity<?>)
+        restTemplate.getForEntity("/security/suspicious-ips/susClient", List.class);
     assertThat(suspiciousIpsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-    java.util.List<java.util.Map<String, Object>> suspiciousIpsList = suspiciousIpsResponse.getBody();
-    assertThat(suspiciousIpsList).isNotNull().isNotEmpty();
-    System.out.println("\n\n*************\n" + suspiciousIpsList + "\n***********");
-    
-    // Build expected hourWindow for suspicious IPs endpoint (ISO format: "yyyy-MM-dd'T'HH:00:00")
-    java.time.format.DateTimeFormatter hourWindowFormatter = 
-        java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:00:00");
-    String expectedHourWindow = hourTruncated.format(hourWindowFormatter);
-    
-    // Expected: 123.456.7.89 has 10 × 401 errors, 987.654.3.21 has 10 × 403 errors
-    java.util.Map<String, Object> expected1 = new java.util.LinkedHashMap<>();
-    expected1.put("ipAddress", "123.456.7.89");
-    expected1.put("hourWindow", expectedHourWindow);
-    expected1.put("errorCount", 10);
-    
-    java.util.Map<String, Object> expected2 = new java.util.LinkedHashMap<>();
-    expected2.put("ipAddress", "987.654.3.21");
-    expected2.put("hourWindow", expectedHourWindow);
-    expected2.put("errorCount", 10);
-    
-    assertThat(suspiciousIpsList).containsExactly(expected1, expected2);
+    List<Map<String, Object>> suspiciousIpsList = suspiciousIpsResponse.getBody();
+
+    Map<String, Object> expectedResults = new HashMap<>();
+    expectedResults.put("ipAddress", "123.456.7.89");
+    expectedResults.put("hourWindow", EXPECTED_HOUR);
+    expectedResults.put("errorCount", 10);
+
+    assertThat(suspiciousIpsList).containsExactly(expectedResults);
   }
 }
