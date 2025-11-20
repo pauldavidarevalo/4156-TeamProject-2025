@@ -9,11 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +39,10 @@ class LogProcessorIntegrationTest {
   private TestRestTemplate restTemplate;
 
   private static final String TEST_DB_PATH = "target/test-logs.db";
-  private static final String EXPECTED_HOUR = "2025-10-19T12:00";
+  // Taken from parsing of sampleApacheSimple.log timestamp interpretted as LocalDateTime
+  private static final String SAMPLE_APACHE_SIMPLE_EXPECTED_HOUR = "2025-10-19T12:00";
+  // Taken from parsing of sampleApacheSimple.log timestamp interpretted as LocalDateTime
+  private static final String SUSPICIOUS_IPS_EXPECTED_HOUR = "2025-10-19T16:00";
 
   @BeforeAll
   void uploadTestLogs() throws Exception {
@@ -140,7 +140,7 @@ class LogProcessorIntegrationTest {
     );
     assertThat(timeseriesRequestsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     Map<String, Integer> requestsMap = timeseriesRequestsResponse.getBody();
-    assertThat(requestsMap).containsEntry(EXPECTED_HOUR, 5);
+    assertThat(requestsMap).containsEntry(SAMPLE_APACHE_SIMPLE_EXPECTED_HOUR, 5);
   }
 
   @Test
@@ -154,7 +154,7 @@ class LogProcessorIntegrationTest {
     );
     assertThat(timeseriesErrorsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     Map<String, Map<String, Integer>> errorsMap = timeseriesErrorsResponse.getBody();
-    Map<String, Integer> inner = errorsMap.get(EXPECTED_HOUR);
+    Map<String, Integer> inner = errorsMap.get(SAMPLE_APACHE_SIMPLE_EXPECTED_HOUR);
     assertThat(inner.getOrDefault("4xx", 0)).isEqualTo(0);
     assertThat(inner.getOrDefault("5xx", 0)).isEqualTo(1);
   }
@@ -173,7 +173,7 @@ class LogProcessorIntegrationTest {
 
     Map<String, Object> expectedResults = new HashMap<>();
     expectedResults.put("ipAddress", "123.456.7.89");
-    expectedResults.put("hourWindow", EXPECTED_HOUR);
+    expectedResults.put("hourWindow", SUSPICIOUS_IPS_EXPECTED_HOUR);
     expectedResults.put("errorCount", 10);
 
     assertThat(suspiciousIpsList).containsExactly(expectedResults);
