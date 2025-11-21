@@ -22,23 +22,25 @@ public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
 
   // Check whether any entries exist for a given clientId
   boolean existsByClientId(String clientId);
-    @Query("""
+
+  @Query("""
         SELECT l.hourWindow, COUNT(l) 
         FROM LogEntry l 
         WHERE l.clientId = :clientId 
         GROUP BY l.hourWindow 
         ORDER BY l.hourWindow
         """)
-    List<Object[]> countRequestsByHour(@Param("clientId") String clientId);
+  List<Object[]> countRequestsByHour(@Param("clientId") String clientId);
 
-    @Query("""
-        SELECT l.hourWindow, SUM(CASE WHEN l.statusCode BETWEEN 400 AND 499 THEN 1 ELSE 0 END), SUM(CASE WHEN l.statusCode BETWEEN 500 AND 599 THEN 1 ELSE 0 END)
+  @Query("""
+        SELECT l.hourWindow, SUM(CASE WHEN l.statusCode BETWEEN 400 AND 499 THEN 1 ELSE 0 END), 
+        SUM(CASE WHEN l.statusCode BETWEEN 500 AND 599 THEN 1 ELSE 0 END)
         FROM LogEntry l
         WHERE l.clientId = :clientId
         GROUP BY l.hourWindow
         ORDER BY l.hourWindow
-    """)
-    List<Object[]> countErrorCodesByHour(@Param("clientId") String clientId);
+        """)
+  List<Object[]> countErrorCodesByHour(@Param("clientId") String clientId);
 
   // Generated with ChatGPT
   @Query("""
