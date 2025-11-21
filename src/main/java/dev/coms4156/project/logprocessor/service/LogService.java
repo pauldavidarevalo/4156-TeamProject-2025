@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -120,13 +119,14 @@ public class LogService {
   public Map<String, Integer> getRequestCountsByHour(String clientId) {
     List<Object[]> rows = repo.countRequestsByHour(clientId);
     Map<String, Integer> result = new LinkedHashMap<>();
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00");
+
     for (Object[] row : rows) {
-      LocalDateTime ldt = (LocalDateTime) row[0];
-      String hourStr = ldt.truncatedTo(ChronoUnit.HOURS).format(formatter);
+      Object hourObj = row[0];
+      String hourStr = hourObj.toString();
       Number count = (Number) row[1]; // Works for Integer or Long
       result.put(hourStr, count.intValue());
     }
+
     return result;
   }
 
@@ -141,11 +141,9 @@ public class LogService {
   public Map<String, Map<String, Integer>> getErrorCountsByHour(String clientId) {
     List<Object[]> rows = repo.countErrorCodesByHour(clientId);
     Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00");
-
     for (Object[] row : rows) {
-      LocalDateTime ldt = (LocalDateTime) row[0];
-      String hourStr = ldt.truncatedTo(ChronoUnit.HOURS).format(formatter);
+      Object hourObj = row[0];
+      String hourStr = hourObj.toString();
 
       Long count4xx = ((Number) row[1]).longValue();
       Long count5xx = ((Number) row[2]).longValue();
@@ -175,7 +173,7 @@ public class LogService {
     return results.stream()
         .map(row -> Map.of(
             "ipAddress", row[0],
-            "hourWindow", row[1],
+            "hourWindow", row[1].toString(),
             "errorCount", row[2]))
         .toList();
   }
