@@ -38,7 +38,6 @@ class LogProcessorIntegrationTest {
 
   @Autowired
   private TestRestTemplate restTemplate;
-  private static final String TEST_DB_PATH = "target/test-logs.db";
   // Taken from parsing timestamps each file in sampleLogs as LocalDateTime
   
   private static final String SAMPLE_APACHE_SIMPLE_EXPECTED_HOUR = "2025-10-19T12:00";
@@ -47,14 +46,8 @@ class LogProcessorIntegrationTest {
 
   @BeforeAll
   void uploadTestLogs() throws Exception {
-    File testDb = new File(TEST_DB_PATH);
-    if (testDb.exists()) {
-      testDb.delete();
-    }
-
     // upload multiple logs from different clients to test multiple clients simultaneously
     Path sample = Path.of("sampleLogs", "sampleApacheSimple.log");
-    
     MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
     body.add("clientId", "clientA");
     body.add("file", new FileSystemResource(sample.toFile()));
