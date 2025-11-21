@@ -122,7 +122,7 @@ public class LogService {
 
     for (Object[] row : rows) {
       Object hourObj = row[0];
-      String hourStr = hourObj == null ? null : hourObj.toString();
+      String hourStr = hourObj.toString();
       Number count = (Number) row[1]; // Works for Integer or Long
       result.put(hourStr, count.intValue());
     }
@@ -143,7 +143,7 @@ public class LogService {
     Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
     for (Object[] row : rows) {
       Object hourObj = row[0];
-      String hourStr = hourObj == null ? null : hourObj.toString();
+      String hourStr = hourObj.toString();
 
       Long count4xx = ((Number) row[1]).longValue();
       Long count5xx = ((Number) row[2]).longValue();
@@ -173,7 +173,7 @@ public class LogService {
     return results.stream()
         .map(row -> Map.of(
             "ipAddress", row[0],
-            "hourWindow", row[1] == null ? null : row[1].toString(),
+            "hourWindow", row[1].toString(),
             "errorCount", row[2]))
         .toList();
   }
