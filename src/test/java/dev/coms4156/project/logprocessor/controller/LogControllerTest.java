@@ -162,4 +162,56 @@ class LogControllerTest {
     verify(logService, times(1)).clientExists("missingClient");
     verify(logService, never()).countStatusCodesForClient(any());
   }
+
+  @Test
+  void testUploadLogReturnsBadRequestWhenNullClientIdIsGiven() throws Exception {
+    MockMultipartFile file = new MockMultipartFile("file",
+            "test.log",
+            "text/plain",
+            "data".getBytes());
+
+    mockMvc.perform(multipart("/logs/upload")
+                      .file(file))
+              .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void testUploadLogStillAcceptsClientIdWithLongLength() throws Exception {
+    String longClientId = "A".repeat(200);
+    MockMultipartFile file = new MockMultipartFile("file",
+            "test.log",
+            "text/plain",
+            "data".getBytes());
+
+    doNothing().when(logService).processLogFile(any(), eq(longClientId));
+
+    mockMvc.perform(multipart("/logs/upload")
+                        .file(file)
+                        .param("clientId", longClientId))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Log file processed successfully."));
+
+    verify(logService, times(1)).processLogFile(any(), eq(longClientId));
+  }
+
+  @Test
+  void testUploadLogFileReturnsBadRequestFromMissingFilename() throws Exception {
+    MockMultipartFile file = new MockMultipartFile("file", "", "text/plain", "data".getBytes());
+
+    mockMvc.perform(multipart("/logs/upload")
+                    .file(file)
+                    .param("clientId", "clientA"))
+            .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void testGetStatusCodeCountsEmptyDatabaseReturnsEmptyJson() throws Exception {
+    when(logService.clientExists("noLogsClient")).thenReturn(true);
+    when(logService.countStatusCodesForClient("noLogsClient")).thenReturn(new HashMap<>());
+
+    mockMvc.perform(get("/logs/statusCodeCounts")
+                    .param("clientId", "noLogsClient"))
+            .andExpect(status().isOk())
+            .andExpect(content().json("{}"));
+  }
 }

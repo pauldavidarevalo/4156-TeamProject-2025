@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -185,5 +186,14 @@ class LogServiceTest {
     assertEquals(2, result.get("2025-10-20T14:00").get("4xx"));
     assertEquals(0, result.get("2025-10-20T14:00").get("5xx"));
     verify(repo).countErrorCodesByHour("clientA");
+  }
+
+  @Test
+  void testProcessLogFileEmitsInfoLogOnSuccessfulParse() throws Exception {
+    String validLine = "1.2.3.4 - - [12/Oct/2025:10:00:00 +0000] \"GET /test HTTP/1.1\" 200 1234";
+    InputStream stream = new ByteArrayInputStream(validLine.getBytes());
+
+    service.processLogFile(stream, "logTestClient");
+    verify(repo, times(1)).save(any(LogEntry.class));
   }
 }
