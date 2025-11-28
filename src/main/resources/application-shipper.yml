@@ -1,0 +1,22 @@
+# Created with the help of ChatGPT
+spring:
+  main:
+    web-application-type: none
+
+  task:
+    execution:
+      pool:
+        core-size: 1
+      thread-name-prefix: shipper-
+
+  # Keeps the JVM alive forever
+  threads:
+    virtual:
+      enabled: false
+
+logshipper:
+  enabled: true
+  client-id: client-from-laptop
+  url: http://localhost:8080/logs/upload
+  log-file: ./sampleLogs/sampleApacheLog.log
+  interval-ms: 5000
