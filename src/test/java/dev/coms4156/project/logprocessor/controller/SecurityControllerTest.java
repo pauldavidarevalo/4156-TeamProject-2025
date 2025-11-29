@@ -103,4 +103,36 @@ class SecurityControllerTest {
 
     verify(logService, times(0)).getIpsWithManyAuthErrors("clientB");
   }
+
+  @Test
+  void testGetSuspiciousIpsEmptyDatabaseReturnsNoSuspiciousMessage() throws Exception {
+    when(logService.clientExists("cleanClient")).thenReturn(true);
+    when(logService.getIpsWithManyAuthErrors("cleanClient")).thenReturn(new ArrayList<>());
+
+    mockMvc.perform(get("/security/suspicious-ips/cleanClient"))
+            .andExpect(status().isOk())
+            .andExpect(content().string("No suspicious IPs found"));
+
+    verify(logService, times(1)).getIpsWithManyAuthErrors("cleanClient");
+  }
+
+  @Test
+  void testGetSuspiciousIpsWithInvalidClientIdCharacters() throws Exception {
+    String badId = "client with spaces";
+    when(logService.clientExists(badId)).thenReturn(false);
+
+    mockMvc.perform(get("/security/suspicious-ips/" + badId))
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("Error: clientId not found"));
+  }
+
+  @Test
+  void testGetSuspiciousIpsWithSpecialCharactersInPath() throws Exception {
+    when(logService.clientExists("client@123!")).thenReturn(true);
+    when(logService.getIpsWithManyAuthErrors("client@123!")).thenReturn(new ArrayList<>());
+
+    mockMvc.perform(get("/security/suspicious-ips/client@123!"))
+            .andExpect(status().isOk())
+            .andExpect(content().string("No suspicious IPs found"));
+  }
 }

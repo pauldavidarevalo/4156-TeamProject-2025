@@ -1,5 +1,6 @@
 package dev.coms4156.project.logprocessor.controller;
 
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -56,7 +57,6 @@ class AnalyticsControllerTest {
 
     mockMvc.perform(get("/analytics/top-endpoints"))
         .andExpect(status().isOk())
-        // Compare against JSON, not Java toString()
         .andExpect(content().json("[[\"endpoint1\",10],[\"endpoint2\",5]]"));
 
     verify(logService, times(1)).getTopEndpoints();
@@ -138,5 +138,68 @@ class AnalyticsControllerTest {
         .andExpect(content().string("Error: clientId not found"));
 
     verify(logService, times(0)).getErrorCountsByHour("clientA");
+  }
+
+  @Test
+  void testGetTopEndpointsReturnsEmptyListFromNoLogsPresentInDatabase() throws Exception {
+    when(logService.getTopEndpoints()).thenReturn(new ArrayList<>());
+
+    mockMvc.perform(get("/analytics/top-endpoints"))
+            .andExpect(status().isOk())
+            .andExpect(content().json("[]"));
+
+    verify(logService, times(1)).getTopEndpoints();
+  }
+
+  @Test
+  void testGetErrorCountsByHourReturnsNotFoundFromNullClientId() throws Exception {
+    when(logService.clientExists(null)).thenReturn(false);
+
+    mockMvc.perform(get("/analytics/timeseries/error-counts/null"))
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("Error: clientId not found"));
+  }
+
+  @Test
+  void testGetRequestCountsByHourReturnsEmptyJsonWhenNoDataButClientExists() throws Exception {
+    when(logService.clientExists("emptyClient")).thenReturn(true);
+    when(logService.getRequestCountsByHour("emptyClient")).thenReturn(new LinkedHashMap<>());
+
+    mockMvc.perform(get("/analytics/timeseries/requests/emptyClient"))
+            .andExpect(status().isOk())
+            .andExpect(content().json("{}"));
+  }
+
+  @Test
+  void testGetRequestCountsByHourReturnsNotFoundWithMessageForInvalidOrMissingClientId()
+          throws Exception {
+    when(logService.clientExists(any(String.class))).thenReturn(false);
+    when(logService.clientExists(null)).thenReturn(false);
+
+    mockMvc.perform(get("/analytics/timeseries/requests/"))
+            .andExpect(status().isNotFound())
+            .andExpect(content().string(""));
+
+    mockMvc.perform(get("/analytics/timeseries/requests/null"))
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("Error: clientId not found"));
+
+    mockMvc.perform(get("/analytics/timeseries/requests/   "))
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("Error: clientId not found"));
+
+    mockMvc.perform(get("/analytics/timeseries/requests/nonexistent"))
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("Error: clientId not found"));
+  }
+
+  @Test
+  void testGetErrorCountsByHourReturnsEmptyJsonWhenNoErrorsButClientExists() throws Exception {
+    when(logService.clientExists("noErrorsClient")).thenReturn(true);
+    when(logService.getErrorCountsByHour("noErrorsClient")).thenReturn(new LinkedHashMap<>());
+
+    mockMvc.perform(get("/analytics/timeseries/error-counts/noErrorsClient"))
+            .andExpect(status().isOk())
+            .andExpect(content().json("{}"));
   }
 }
