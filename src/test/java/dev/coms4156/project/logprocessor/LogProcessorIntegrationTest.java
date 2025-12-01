@@ -18,8 +18,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
@@ -34,6 +37,7 @@ import org.springframework.util.MultiValueMap;
     "spring.jpa.database-platform=org.hibernate.community.dialect.SQLiteDialect",
     "spring.jpa.hibernate.ddl-auto=create"
 })
+@TestPropertySource(properties = "API_KEY=test-api-key")
 class LogProcessorIntegrationTest {
 
   @Autowired
@@ -48,12 +52,18 @@ class LogProcessorIntegrationTest {
   void uploadTestLogs() throws Exception {
     // upload multiple logs from different clients to test multiple clients simultaneously
     Path sample = Path.of("sampleLogs", "sampleApacheSimple.log");
+
     MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
     body.add("clientId", "clientA");
     body.add("file", new FileSystemResource(sample.toFile()));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("x-api-key", "test-api-key");
+    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
     ResponseEntity<String> uploadResponse = restTemplate.postForEntity(
         "/logs/upload",
-        body,
+        requestEntity,
         String.class
     );
     assertThat(uploadResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -63,9 +73,10 @@ class LogProcessorIntegrationTest {
     body = new LinkedMultiValueMap<>();
     body.add("clientId", "clientA");
     body.add("file", new FileSystemResource(sampleApacheSimple1HrLater.toFile()));
+    requestEntity = new HttpEntity<>(body, headers);
     uploadResponse = restTemplate.postForEntity(
         "/logs/upload",
-        body,
+        requestEntity,
         String.class
     );
     assertThat(uploadResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -74,9 +85,10 @@ class LogProcessorIntegrationTest {
     body = new LinkedMultiValueMap<>();
     body.add("clientId", "clientB");
     body.add("file", new FileSystemResource(sample.toFile()));
+    requestEntity = new HttpEntity<>(body, headers);
     uploadResponse = restTemplate.postForEntity(
         "/logs/upload",
-        body,
+        requestEntity,
         String.class
     );
     assertThat(uploadResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -86,9 +98,10 @@ class LogProcessorIntegrationTest {
     body = new LinkedMultiValueMap<>();
     body.add("clientId", "susClient");
     body.add("file", new FileSystemResource(suspiciousIpsPath.toFile()));
+    requestEntity = new HttpEntity<>(body, headers);
     uploadResponse = restTemplate.postForEntity(
         "/logs/upload",
-        body,
+        requestEntity,
         String.class
     );
     assertThat(uploadResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -106,11 +119,14 @@ class LogProcessorIntegrationTest {
 
   @Test
   void testTopEndpoints() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("x-api-key", "test-api-key"); // include your API key
+    HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
     final ResponseEntity<List<Object[]>> topEndpointsResponse =
         restTemplate.exchange(
         "/analytics/top-endpoints",
         HttpMethod.GET,
-        null,
+        requestEntity,
         new ParameterizedTypeReference<List<Object[]>>() {}
         );
 
@@ -134,11 +150,14 @@ class LogProcessorIntegrationTest {
 
   @Test
   void testStatusCodeCountsForClientA() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("x-api-key", "test-api-key"); // include your API key
+    HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
     ResponseEntity<Map<String, Integer>> statusResponseA =
         restTemplate.exchange(
         "/logs/statusCodeCounts?clientId=clientA",
         HttpMethod.GET,
-        null,
+        requestEntity,
         new ParameterizedTypeReference<Map<String, Integer>>() {}
         );
     assertThat(statusResponseA.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -150,11 +169,14 @@ class LogProcessorIntegrationTest {
 
   @Test
   void testStatusCodeCountsForClientB() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("x-api-key", "test-api-key"); // include your API key
+    HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
     ResponseEntity<Map<String, Integer>> statusResponseB =
         restTemplate.exchange(
         "/logs/statusCodeCounts?clientId=clientB",
         HttpMethod.GET,
-        null,
+        requestEntity,
         new ParameterizedTypeReference<Map<String, Integer>>() {}
         );
     assertThat(statusResponseB.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -166,11 +188,14 @@ class LogProcessorIntegrationTest {
 
   @Test
   void testTimeseriesRequests() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("x-api-key", "test-api-key"); // include your API key
+    HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
     ResponseEntity<Map<String, Integer>> timeseriesRequestsResponse =
         restTemplate.exchange(
         "/analytics/timeseries/requests/clientA",
         HttpMethod.GET,
-        null,
+        requestEntity,
         new ParameterizedTypeReference<Map<String, Integer>>() {}
         );
     assertThat(timeseriesRequestsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -181,11 +206,14 @@ class LogProcessorIntegrationTest {
 
   @Test
   void testTimeseriesErrorCounts() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("x-api-key", "test-api-key"); // include your API key
+    HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
     ResponseEntity<Map<String, Map<String, Integer>>> timeseriesErrorsResponse =
         restTemplate.exchange(
         "/analytics/timeseries/error-counts/clientA",
         HttpMethod.GET,
-        null,
+        requestEntity,
         new ParameterizedTypeReference<Map<String, Map<String, Integer>>>() {}
         );
     assertThat(timeseriesErrorsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -201,11 +229,14 @@ class LogProcessorIntegrationTest {
 
   @Test
   void testSuspiciousIps() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("x-api-key", "test-api-key"); // include your API key
+    HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
     ResponseEntity<List<Map<String, Object>>> suspiciousIpsResponse =
         restTemplate.exchange(
         "/security/suspicious-ips/susClient",
         HttpMethod.GET,
-        null,
+        requestEntity,
         new ParameterizedTypeReference<List<Map<String, Object>>>() {}
         );
     assertThat(suspiciousIpsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);

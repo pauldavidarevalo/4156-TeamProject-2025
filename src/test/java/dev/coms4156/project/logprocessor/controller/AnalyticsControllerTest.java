@@ -1,5 +1,6 @@
 package dev.coms4156.project.logprocessor.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -9,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import dev.coms4156.project.logprocessor.service.ApiKeyFilter;
 import dev.coms4156.project.logprocessor.service.LogService;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,10 +24,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(AnalyticsController.class)
-@Import(AnalyticsControllerTest.MockConfig.class)
+@Import({AnalyticsControllerTest.MockConfig.class, ApiKeyFilter.class})
+@TestPropertySource(properties = "API_KEY=test-api-key")
 class AnalyticsControllerTest {
 
   @Autowired
@@ -55,7 +59,7 @@ class AnalyticsControllerTest {
     mockData.add(new Object[] { "endpoint2", 5L });
     when(logService.getTopEndpoints()).thenReturn(mockData);
 
-    mockMvc.perform(get("/analytics/top-endpoints"))
+    mockMvc.perform(get("/analytics/top-endpoints").header("x-api-key", "test-api-key"))
         .andExpect(status().isOk())
         .andExpect(content().json("[[\"endpoint1\",10],[\"endpoint2\",5]]"));
 
@@ -67,7 +71,7 @@ class AnalyticsControllerTest {
   void testGetTopEndpointsEmptyList() throws Exception {
     when(logService.getTopEndpoints()).thenReturn(new ArrayList<>());
 
-    mockMvc.perform(get("/analytics/top-endpoints"))
+    mockMvc.perform(get("/analytics/top-endpoints").header("x-api-key", "test-api-key"))
         .andExpect(status().isOk())
         .andExpect(content().json("[]"));
 
@@ -84,7 +88,8 @@ class AnalyticsControllerTest {
     when(logService.getRequestCountsByHour("clientA")).thenReturn(mockData);
     when(logService.clientExists("clientA")).thenReturn(true);
 
-    mockMvc.perform(get("/analytics/timeseries/requests/clientA"))
+    mockMvc.perform(get("/analytics/timeseries/requests/clientA")
+        .header("x-api-key", "test-api-key"))
         .andExpect(status().isOk())
         .andExpect(content().json("{\"2025-10-20 13:00:00\":5,\"2025-10-20 14:00:00\":2}"));
 
@@ -96,7 +101,8 @@ class AnalyticsControllerTest {
   void testGetRequestCountsByHourReturnsDataWhenClientDoesNotExist() throws Exception {
     when(logService.clientExists("clientA")).thenReturn(false);
 
-    mockMvc.perform(get("/analytics/timeseries/requests/clientA"))
+    mockMvc.perform(get("/analytics/timeseries/requests/clientA")
+        .header("x-api-key", "test-api-key"))
         .andExpect(status().isNotFound())
         .andExpect(content().string("Error: clientId not found"));
 
@@ -119,7 +125,8 @@ class AnalyticsControllerTest {
     when(logService.getErrorCountsByHour("clientA")).thenReturn(mockData);
     when(logService.clientExists("clientA")).thenReturn(true);
 
-    mockMvc.perform(get("/analytics/timeseries/error-counts/clientA"))
+    mockMvc.perform(get("/analytics/timeseries/error-counts/clientA")
+        .header("x-api-key", "test-api-key"))
         .andExpect(status().isOk())
         .andExpect(content()
             .json("{\"2025-10-20 13:00:00\":{\"4xx\":3,\"5xx\":1}, "
@@ -133,7 +140,8 @@ class AnalyticsControllerTest {
   void testGetErrorCountsByHourReturnsDataWhenClientDoesNotExist() throws Exception {
     when(logService.clientExists("clientA")).thenReturn(false);
 
-    mockMvc.perform(get("/analytics/timeseries/error-counts/clientA"))
+    mockMvc.perform(get("/analytics/timeseries/error-counts/clientA")
+        .header("x-api-key", "test-api-key"))
         .andExpect(status().isNotFound())
         .andExpect(content().string("Error: clientId not found"));
 
@@ -144,7 +152,8 @@ class AnalyticsControllerTest {
   void testGetTopEndpointsReturnsEmptyListFromNoLogsPresentInDatabase() throws Exception {
     when(logService.getTopEndpoints()).thenReturn(new ArrayList<>());
 
-    mockMvc.perform(get("/analytics/top-endpoints"))
+    mockMvc.perform(get("/analytics/top-endpoints")
+            .header("x-api-key", "test-api-key"))
             .andExpect(status().isOk())
             .andExpect(content().json("[]"));
 
@@ -155,7 +164,8 @@ class AnalyticsControllerTest {
   void testGetErrorCountsByHourReturnsNotFoundFromNullClientId() throws Exception {
     when(logService.clientExists(null)).thenReturn(false);
 
-    mockMvc.perform(get("/analytics/timeseries/error-counts/null"))
+    mockMvc.perform(get("/analytics/timeseries/error-counts/null")
+            .header("x-api-key", "test-api-key"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Error: clientId not found"));
   }
@@ -165,7 +175,8 @@ class AnalyticsControllerTest {
     when(logService.clientExists("emptyClient")).thenReturn(true);
     when(logService.getRequestCountsByHour("emptyClient")).thenReturn(new LinkedHashMap<>());
 
-    mockMvc.perform(get("/analytics/timeseries/requests/emptyClient"))
+    mockMvc.perform(get("/analytics/timeseries/requests/emptyClient")
+            .header("x-api-key", "test-api-key"))
             .andExpect(status().isOk())
             .andExpect(content().json("{}"));
   }
@@ -176,19 +187,23 @@ class AnalyticsControllerTest {
     when(logService.clientExists(any(String.class))).thenReturn(false);
     when(logService.clientExists(null)).thenReturn(false);
 
-    mockMvc.perform(get("/analytics/timeseries/requests/"))
+    mockMvc.perform(get("/analytics/timeseries/requests/")
+            .header("x-api-key", "test-api-key"))
             .andExpect(status().isNotFound())
             .andExpect(content().string(""));
 
-    mockMvc.perform(get("/analytics/timeseries/requests/null"))
+    mockMvc.perform(get("/analytics/timeseries/requests/null")
+            .header("x-api-key", "test-api-key"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Error: clientId not found"));
 
-    mockMvc.perform(get("/analytics/timeseries/requests/   "))
+    mockMvc.perform(get("/analytics/timeseries/requests/   ")
+            .header("x-api-key", "test-api-key"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Error: clientId not found"));
 
-    mockMvc.perform(get("/analytics/timeseries/requests/nonexistent"))
+    mockMvc.perform(get("/analytics/timeseries/requests/nonexistent")
+            .header("x-api-key", "test-api-key"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Error: clientId not found"));
   }
@@ -198,7 +213,8 @@ class AnalyticsControllerTest {
     when(logService.clientExists("noErrorsClient")).thenReturn(true);
     when(logService.getErrorCountsByHour("noErrorsClient")).thenReturn(new LinkedHashMap<>());
 
-    mockMvc.perform(get("/analytics/timeseries/error-counts/noErrorsClient"))
+    mockMvc.perform(get("/analytics/timeseries/error-counts/noErrorsClient")
+            .header("x-api-key", "test-api-key"))
             .andExpect(status().isOk())
             .andExpect(content().json("{}"));
   }

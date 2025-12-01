@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import dev.coms4156.project.logprocessor.service.ApiKeyFilter;
 import dev.coms4156.project.logprocessor.service.LogService;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,10 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(SecurityController.class)
-@Import(SecurityControllerTest.MockConfig.class)
+@Import({SecurityControllerTest.MockConfig.class, ApiKeyFilter.class})
+@TestPropertySource(properties = "API_KEY=test-api-key")
 class SecurityControllerTest {
 
   @Autowired
@@ -67,7 +70,8 @@ class SecurityControllerTest {
     when(logService.getIpsWithManyAuthErrors("clientA")).thenReturn(mockData);
     when(logService.clientExists("clientA")).thenReturn(true);
 
-    mockMvc.perform(get("/security/suspicious-ips/clientA"))
+    mockMvc.perform(get("/security/suspicious-ips/clientA")
+        .header("x-api-key", "test-api-key"))
         .andExpect(status().isOk())
         .andExpect(content().json("""
                 [
@@ -85,7 +89,8 @@ class SecurityControllerTest {
     when(logService.getIpsWithManyAuthErrors("clientB")).thenReturn(Collections.emptyList());
     when(logService.clientExists("clientB")).thenReturn(true);
 
-    mockMvc.perform(get("/security/suspicious-ips/clientB"))
+    mockMvc.perform(get("/security/suspicious-ips/clientB")
+        .header("x-api-key", "test-api-key"))
         .andExpect(status().isOk())
         .andExpect(content().string("No suspicious IPs found"));
 
@@ -97,7 +102,8 @@ class SecurityControllerTest {
   void testGetSuspiciousIpsReturnsEmptyWhenClientDoesNotExist() throws Exception {
     when(logService.clientExists("clientB")).thenReturn(false);
 
-    mockMvc.perform(get("/security/suspicious-ips/clientB"))
+    mockMvc.perform(get("/security/suspicious-ips/clientB")
+        .header("x-api-key", "test-api-key"))
         .andExpect(status().isNotFound())
         .andExpect(content().string("Error: clientId not found"));
 
@@ -109,7 +115,8 @@ class SecurityControllerTest {
     when(logService.clientExists("cleanClient")).thenReturn(true);
     when(logService.getIpsWithManyAuthErrors("cleanClient")).thenReturn(new ArrayList<>());
 
-    mockMvc.perform(get("/security/suspicious-ips/cleanClient"))
+    mockMvc.perform(get("/security/suspicious-ips/cleanClient")
+            .header("x-api-key", "test-api-key"))
             .andExpect(status().isOk())
             .andExpect(content().string("No suspicious IPs found"));
 
@@ -121,7 +128,8 @@ class SecurityControllerTest {
     String badId = "client with spaces";
     when(logService.clientExists(badId)).thenReturn(false);
 
-    mockMvc.perform(get("/security/suspicious-ips/" + badId))
+    mockMvc.perform(get("/security/suspicious-ips/" + badId)
+            .header("x-api-key", "test-api-key"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Error: clientId not found"));
   }
@@ -131,7 +139,8 @@ class SecurityControllerTest {
     when(logService.clientExists("client@123!")).thenReturn(true);
     when(logService.getIpsWithManyAuthErrors("client@123!")).thenReturn(new ArrayList<>());
 
-    mockMvc.perform(get("/security/suspicious-ips/client@123!"))
+    mockMvc.perform(get("/security/suspicious-ips/client@123!")
+            .header("x-api-key", "test-api-key"))
             .andExpect(status().isOk())
             .andExpect(content().string("No suspicious IPs found"));
   }
