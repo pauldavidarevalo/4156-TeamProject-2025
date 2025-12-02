@@ -77,6 +77,13 @@ public class LogService {
   }
 
   /**
+   * Deletes all log entries from the database.
+   */
+  public void clearLogs() {
+    repo.deleteAll();
+  }
+
+  /**
    * Sample method analytics to be replaced by security endpoint features.
    *
    * @return array sorted by frequency descending (most to least) endpoints

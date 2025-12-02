@@ -149,16 +149,16 @@ public class LogProcessorClient {
         "https://logprocessor-service-445982800820.us-central1.run.app",
         "0f701e92a83f616ce4dbe35f9213d976dc7806c0f081017b1fc4ede0a43e566c");
 
-    Map<String, Integer> result = client.getStatusCodeCounts("fullDayClient5");
+    Map<String, Integer> result = client.getStatusCodeCounts("fullDayClient");
     System.out.println("Status Code Counts:");
     result.forEach((code, count) -> System.out.println(code + ": " + count));
     plotStatusCodes(result);
 
-    Map<String, Integer> hourly = client.getRequestCountsByHour("fullDayClient5");
+    Map<String, Integer> hourly = client.getRequestCountsByHour("fullDayClient");
     System.out.println("Hourly Request Counts:");
     hourly.forEach((hour, count) -> System.out.println(hour + ": " + count));
 
-    List<Map<String, Object>> suspicious = client.getSuspiciousIps("fullDayClient5");
+    List<Map<String, Object>> suspicious = client.getSuspiciousIps("fullDayClient");
     System.out.println("Suspicious IPs (5+ auth errors in an hour window):");
     if (suspicious.isEmpty()) {
       System.out.println("No suspicious IPs found.");
