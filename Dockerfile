@@ -1,3 +1,4 @@
+# This file was debugged with ChatGPT
 # Build
 FROM maven:3.9.11-eclipse-temurin-17 AS build
 WORKDIR /app

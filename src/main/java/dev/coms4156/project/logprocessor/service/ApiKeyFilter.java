@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * This file enforces API key authentication usage for all incoming requests.
+ * This file was debugged with ChatGPT
  */
 @Component
 public class ApiKeyFilter implements Filter {
