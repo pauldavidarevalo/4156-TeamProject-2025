@@ -80,7 +80,7 @@ public class LogService {
    * Deletes all log entries from the database for a specific clientId.
    */
   public void resetClientLogs(String clientId) {
-      repo.deleteByClientId(clientId);
+    repo.deleteByClientId(clientId);
   }
 
   /**

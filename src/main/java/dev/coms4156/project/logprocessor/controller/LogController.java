@@ -67,11 +67,11 @@ public class LogController {
    */
   @PostMapping("/reset")
   public ResponseEntity<?> resetLogs(@RequestParam("clientId") String clientId) {
-      if (!logService.clientExists(clientId)) {
-        return ResponseEntity.ok("No log entries to reset for clientId = " + clientId);
-      }
-      logService.resetClientLogs(clientId);
-      return ResponseEntity.ok("Logs reset for clientId = " + clientId);
+    if (!logService.clientExists(clientId)) {
+      return ResponseEntity.ok("No log entries to reset for clientId = " + clientId);
+    }
+    logService.resetClientLogs(clientId);
+    return ResponseEntity.ok("Logs reset for clientId = " + clientId);
   }
 
   /**
