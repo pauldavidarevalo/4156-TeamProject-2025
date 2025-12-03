@@ -14,6 +14,8 @@ import javax.swing.JFrame;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.LegendItem;
+import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -60,16 +62,16 @@ public class LogProcessorClient {
    * Uploads a log file to the /logs/upload endpoint.
    */
   public String uploadLogFile(String clientId, Path logFilePath) {
-      MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-      body.add("clientId", clientId);
-      body.add("file", new FileSystemResource(logFilePath.toFile()));
+    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+    body.add("clientId", clientId);
+    body.add("file", new FileSystemResource(logFilePath.toFile()));
 
-      return restClient.post()
-          .uri("/logs/upload")
-          .contentType(MediaType.MULTIPART_FORM_DATA)
-          .body(body)
-          .retrieve()
-          .body(String.class);
+    return restClient.post()
+        .uri("/logs/upload")
+        .contentType(MediaType.MULTIPART_FORM_DATA)
+        .body(body)
+        .retrieve()
+        .body(String.class);
   }
 
   /**
@@ -117,7 +119,7 @@ public class LogProcessorClient {
    * Plots hourly request counts, highlighting hours with suspicious activity.
    */
   public static void plotSuspiciousHours(
-        Map<String, Integer> hourly, List<Map<String, Object>> suspicious) {
+      Map<String, Integer> hourly, List<Map<String, Object>> suspicious) {
     Set<String> suspiciousHours = suspicious.stream()
         .map(entry -> (String) entry.get("hourWindow"))
         .collect(Collectors.toSet());
@@ -161,34 +163,36 @@ public class LogProcessorClient {
    * Plots status code counts as a bar chart, coloring 4xx/5xx codes red.
    */
   public static void plotStatusCodes(Map<String, Integer> statusCounts) {
-    // Sort the status codes numerically (low → high)
     Map<String, Integer> sorted = new TreeMap<>(statusCounts);
 
-    // Create dataset
     DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-    sorted.forEach((code, count) -> dataset.addValue(count, "Status Codes", code));
+    sorted.forEach((code, count) -> dataset.addValue(count, "HTTP Status Codes", code));
 
-    // Create chart
     JFreeChart chart = ChartFactory.createBarChart(
         "HTTP Status Codes Count",
         "Status Code",
         "Count",
         dataset);
 
-    // Customize colors: red for 4xx/5xx, blue for others
     CategoryPlot plot = chart.getCategoryPlot();
     BarRenderer renderer = new BarRenderer() {
       @Override
       public Paint getItemPaint(int row, int column) {
         String code = (String) dataset.getColumnKey(column);
         if (code.startsWith("4") || code.startsWith("5")) {
-          return Color.RED;
+          return Color.RED; // Error codes
         } else {
-          return Color.BLUE;
+          return Color.BLUE; // Success codes
         }
       }
     };
     plot.setRenderer(renderer);
+
+    // Create custom legend
+    LegendItemCollection legendItems = new LegendItemCollection();
+    legendItems.add(new LegendItem("Success (1xx-3xx)", Color.BLUE));
+    legendItems.add(new LegendItem("Error (4xx-5xx)", Color.RED));
+    plot.setFixedLegendItems(legendItems);
 
     // Show chart
     JFrame frame = new JFrame("Status Codes");
@@ -204,30 +208,30 @@ public class LogProcessorClient {
    */
   public void uploadLogsLoop(Scanner scanner, String clientId) {
     while (true) {
-        System.out.print("Enter path to log file (or type 'quit' to stop): ");
-        String input = scanner.nextLine().trim();
+      System.out.print("Enter path to log file (or type 'quit' to stop): ");
+      String input = scanner.nextLine().trim();
 
-        if (input.equalsIgnoreCase("quit") || input.isEmpty()) {
-            System.out.println("Exiting log upload loop.");
-            scanner.close();
-            break;
-        }
+      if (input.equalsIgnoreCase("quit") || input.isEmpty()) {
+        System.out.println("Exiting log upload loop.");
+        scanner.close();
+        break;
+      }
 
-        Path logFile = Path.of(input);
-        if (!Files.exists(logFile)) {
-            System.out.println("File does not exist. Try again.");
-            continue;
-        }
+      Path logFile = Path.of(input);
+      if (!Files.exists(logFile)) {
+        System.out.println("File does not exist. Try again.");
+        continue;
+      }
 
-        try {
-            String response = uploadLogFile(clientId, logFile);
-            System.out.println("Upload response: " + response);
-        } catch (Exception e) {
-            System.out.println("Failed to upload log file: " + e.getMessage());
-        }
+      try {
+        String response = uploadLogFile(clientId, logFile);
+        System.out.println("Upload response: " + response);
+      } catch (Exception e) {
+        System.out.println("Failed to upload log file: " + e.getMessage());
+      }
     }
     scanner.close();
-}
+  }
 
   /**
    * Main method to run the client and display plots.
