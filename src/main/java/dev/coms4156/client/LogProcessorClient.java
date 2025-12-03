@@ -1,9 +1,14 @@
 package dev.coms4156.client;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.geom.Rectangle2D;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -16,8 +21,13 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.CategoryItemRendererState;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
@@ -86,6 +96,16 @@ public class LogProcessorClient {
   }
 
   /**
+   * Gets error counts by hour from the /analytics/timeseries/error-counts endpoint.
+   */
+  public Map<String, Map<String, Integer>> getErrorCountsByHour(String clientId) {
+    return restClient.get()
+        .uri("/analytics/timeseries/error-counts/" + clientId)
+        .retrieve()
+        .body(new ParameterizedTypeReference<Map<String, Map<String, Integer>>>() {});
+  }
+
+  /**
    * Gets request counts by hour from the /analytics/timeseries/requests endpoint.
    */
   public Map<String, Integer> getRequestCountsByHour(String clientId) {
@@ -116,13 +136,19 @@ public class LogProcessorClient {
   }
 
   /**
-   * Plots hourly request counts, highlighting hours with suspicious activity.
+   * Plots hourly request counts, highlighting hours with suspicious activity and identified IPs.
    */
-  public static void plotSuspiciousHours(
-      Map<String, Integer> hourly, List<Map<String, Object>> suspicious) {
-    Set<String> suspiciousHours = suspicious.stream()
-        .map(entry -> (String) entry.get("hourWindow"))
-        .collect(Collectors.toSet());
+public static void plotSuspiciousHours(
+        Map<String, Integer> hourly,
+        List<Map<String, Object>> suspicious) {
+
+    // Map each hour to a set of suspicious IPs
+    Map<String, Set<String>> suspiciousMap = new HashMap<>();
+    for (Map<String, Object> entry : suspicious) {
+        String hour = (String) entry.get("hourWindow");
+        String ip = (String) entry.get("ipAddress");
+        suspiciousMap.computeIfAbsent(hour, k -> new HashSet<>()).add(ip);
+    }
 
     // Dataset
     DefaultCategoryDataset dataset = new DefaultCategoryDataset();
@@ -130,46 +156,80 @@ public class LogProcessorClient {
 
     // Create chart
     JFreeChart chart = ChartFactory.createBarChart(
-        "Requests per Hour (highlight suspicious hours)",
-        "Hour",
-        "Count",
-        dataset);
+            "Requests per Hour (highlight suspicious hours)",
+            "Hour",
+            "Count",
+            dataset
+    );
 
     // Customize colors
     CategoryPlot plot = chart.getCategoryPlot();
     BarRenderer renderer = new BarRenderer() {
-      @Override
-      public Paint getItemPaint(int row, int column) {
-        String hour = (String) dataset.getColumnKey(column);
-        if (suspiciousHours.contains(hour)) {
-          return Color.RED; // highlight suspicious
-        } else {
-          return Color.BLUE; // normal
+        @Override
+        public Paint getItemPaint(int row, int column) {
+            String hour = (String) dataset.getColumnKey(column);
+            return suspiciousMap.containsKey(hour) ? Color.RED : Color.BLUE;
         }
-      }
+
+        @Override
+        public void drawItem(Graphics2D g2, CategoryItemRendererState state,
+                             Rectangle2D dataArea, CategoryPlot plot,
+                             CategoryAxis domainAxis, ValueAxis rangeAxis,
+                             CategoryDataset dataset, int row, int column,
+                             int pass) {
+
+            super.drawItem(g2, state, dataArea, plot, domainAxis, rangeAxis, dataset, row, column, pass);
+
+            // Draw IP labels above bars for suspicious hours
+            String hour = (String) dataset.getColumnKey(column);
+            if (suspiciousMap.containsKey(hour)) {
+                Number value = dataset.getValue(row, column);
+                String label = String.join(", ", suspiciousMap.get(hour));
+                double x = domainAxis.getCategoryMiddle(column, getColumnCount(), dataArea, plot.getDomainAxisEdge());
+                double y = rangeAxis.valueToJava2D(value.doubleValue(), dataArea, plot.getRangeAxisEdge()) - 5;
+                g2.setFont(g2.getFont().deriveFont(10f));
+                g2.setPaint(Color.BLACK);
+                g2.drawString(label, (float) x - (label.length() * 2), (float) y);
+            }
+        }
     };
+
+    // Create custom legend
+    LegendItemCollection legendItems = new LegendItemCollection();
+    legendItems.add(new LegendItem("Healthy activity", Color.BLUE));
+    legendItems.add(new LegendItem("Suspicious IP identified", Color.RED));
+    plot.setFixedLegendItems(legendItems);
     plot.setRenderer(renderer);
 
     // Show chart in a window
-    JFrame frame = new JFrame("Requests Chart");
+    JFrame frame = new JFrame("Requests Chart with Suspicious IPs");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.add(new ChartPanel(chart));
     frame.pack();
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
-  }
+}
 
   /**
    * Plots status code counts as a bar chart, coloring 4xx/5xx codes red.
    */
   public static void plotStatusCodes(Map<String, Integer> statusCounts) {
+    // Compute health score
+    int total = statusCounts.values().stream().mapToInt(Integer::intValue).sum();
+    int errorCount = statusCounts.entrySet().stream()
+            .filter(e -> e.getKey().startsWith("4") || e.getKey().startsWith("5"))
+            .mapToInt(Map.Entry::getValue)
+            .sum();
+    double healthScore = ((double)(total - errorCount) / total) * 100.0;
+
     Map<String, Integer> sorted = new TreeMap<>(statusCounts);
 
     DefaultCategoryDataset dataset = new DefaultCategoryDataset();
     sorted.forEach((code, count) -> dataset.addValue(count, "HTTP Status Codes", code));
 
     JFreeChart chart = ChartFactory.createBarChart(
-        "HTTP Status Codes Count",
+        "HTTP Status Codes Count - Health Score: " + String.format("%.2f", healthScore) 
+        + "% successful requests",
         "Status Code",
         "Count",
         dataset);
@@ -203,35 +263,79 @@ public class LogProcessorClient {
     frame.setVisible(true);
   }
 
+  public void plotTimeSeriesWithErrors(String clientId, Map<String, Map<String, Integer>> errorsByHour,
+      Map<String, Integer> requestsByHour) {
+    // Compute total errors per hour (sum of 4xx + 5xx)
+    Map<String, Integer> totalErrorsByHour = new TreeMap<>();
+    for (String hour : errorsByHour.keySet()) {
+        Map<String, Integer> hourErrors = errorsByHour.get(hour);
+        int sum = hourErrors.getOrDefault("4xx", 0) + hourErrors.getOrDefault("5xx", 0);
+        totalErrorsByHour.put(hour, sum);
+    }
+
+    // Create dataset for plotting
+    DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+    for (String hour : requestsByHour.keySet()) {
+        int reqCount = requestsByHour.get(hour);
+        int errCount = totalErrorsByHour.getOrDefault(hour, 0);
+
+        dataset.addValue(reqCount, "Total Requests", hour);
+        dataset.addValue(errCount, "Total Errors", hour);
+    }
+
+    // Create chart
+    JFreeChart chart = ChartFactory.createLineChart(
+            "Hourly Requests vs Errors",
+            "Hour",
+            "Count",
+            dataset
+    );
+
+    // Customize line colors
+    CategoryPlot plot = chart.getCategoryPlot();
+    LineAndShapeRenderer renderer = new LineAndShapeRenderer();
+    renderer.setSeriesPaint(0, Color.BLUE); // Requests
+    renderer.setSeriesPaint(1, Color.RED);  // Errors
+    renderer.setSeriesStroke(0, new BasicStroke(2.0f));
+    renderer.setSeriesStroke(1, new BasicStroke(2.0f));
+    plot.setRenderer(renderer);
+
+    // Show chart
+    JFrame frame = new JFrame("Time Series Analysis");
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.add(new ChartPanel(chart));
+    frame.pack();
+    frame.setLocationRelativeTo(null);
+    frame.setVisible(true);
+}
+
   /**
    * Loop to upload log files based on user input.
    */
-  public void uploadLogsLoop(Scanner scanner, String clientId) {
+public void uploadLogsLoop(Scanner scanner, String clientId) {
     while (true) {
-      System.out.print("Enter path to log file (or type 'quit' to stop): ");
-      String input = scanner.nextLine().trim();
+        System.out.print("Enter path to log file (or type 'quit' to stop): ");
+        String input = scanner.nextLine().trim();
 
-      if (input.equalsIgnoreCase("quit") || input.isEmpty()) {
-        System.out.println("Exiting log upload loop.");
-        scanner.close();
-        break;
-      }
+        if (input.equalsIgnoreCase("quit") || input.isEmpty()) {
+            System.out.println("Exiting log upload loop.");
+            break;
+        }
 
-      Path logFile = Path.of(input);
-      if (!Files.exists(logFile)) {
-        System.out.println("File does not exist. Try again.");
-        continue;
-      }
+        Path logFile = Path.of(input);
+        if (!Files.exists(logFile)) {
+            System.out.println("File does not exist. Try again.");
+            continue;
+        }
 
-      try {
-        String response = uploadLogFile(clientId, logFile);
-        System.out.println("Upload response: " + response);
-      } catch (Exception e) {
-        System.out.println("Failed to upload log file: " + e.getMessage());
-      }
+        try {
+            String response = uploadLogFile(clientId, logFile);
+            System.out.println("Upload response: " + response);
+        } catch (Exception e) {
+            System.out.println("Failed to upload log file: " + e.getMessage());
+        }
     }
-    scanner.close();
-  }
+}
 
   /**
    * Main method to run the client and display plots.
@@ -247,38 +351,31 @@ public class LogProcessorClient {
         "https://logprocessor-service-445982800820.us-central1.run.app",
         apiKey);
 
-    String response = client.resetLogs("fullDayClient");
+    String response = client.resetLogs(clientId);
     System.out.println(response);
 
     client.uploadLogsLoop(scanner, clientId);
     scanner.close();
 
-    response = client.uploadLogFile(
-        "fullDayClient",
-        Path.of("sampleLogs/sampleApacheSimpleFullDay.log"));
-    System.out.println(response);
-
     Map<String, Integer> result = client.getStatusCodeCounts(clientId);
-    System.out.println("Status Code Counts:");
-    result.forEach((code, count) -> System.out.println(code + ": " + count));
     plotStatusCodes(result);
 
     Map<String, Integer> hourly = client.getRequestCountsByHour(clientId);
-    System.out.println("Hourly Request Counts:");
-    hourly.forEach((hour, count) -> System.out.println(hour + ": " + count));
-
     List<Map<String, Object>> suspicious = client.getSuspiciousIps(clientId);
-    System.out.println("Suspicious IPs (5+ auth errors in an hour window):");
+    System.out.println("Suspicious IPs identified:");
     if (suspicious.isEmpty()) {
-      System.out.println("No suspicious IPs found.");
+      System.out.println("No suspicious IPs identified:");
     } else {
       suspicious.forEach(entry -> {
         System.out.println(
             entry.get("hourWindow") + " | "
                 + entry.get("ipAddress") + " | "
-                + entry.get("errorCount"));
+                + "total suspicious requests: " + entry.get("errorCount"));
       });
     }
     plotSuspiciousHours(hourly, suspicious);
+
+    Map<String, Map<String, Integer>> errorsByHour = client.getErrorCountsByHour(clientId);
+    client.plotTimeSeriesWithErrors(clientId, errorsByHour, hourly);
   }
 }
