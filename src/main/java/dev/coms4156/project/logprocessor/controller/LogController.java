@@ -62,6 +62,19 @@ public class LogController {
   }
 
   /**
+   * Resets the log database by deleting all log entries.
+   * Returns 200 OK after completion.
+   */
+  @PostMapping("/reset")
+  public ResponseEntity<?> resetLogs(@RequestParam("clientId") String clientId) {
+    if (!logService.clientExists(clientId)) {
+      return ResponseEntity.ok("No log entries to reset for clientId = " + clientId);
+    }
+    logService.resetClientLogs(clientId);
+    return ResponseEntity.ok("Logs reset for clientId = " + clientId);
+  }
+
+  /**
    * This endpoint stores the frequency of each status code shown after processing.
    *
    * @param clientId ID input by the client to filter status codes.
