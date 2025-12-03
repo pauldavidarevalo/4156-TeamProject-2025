@@ -314,7 +314,7 @@ public static void plotSuspiciousHours(
    */
 public void uploadLogsLoop(Scanner scanner, String clientId) {
     while (true) {
-        System.out.print("Enter path to log file (or type 'quit' to stop): ");
+        System.out.print("Enter path to log file (or type 'quit' to begin processing): ");
         String input = scanner.nextLine().trim();
 
         if (input.equalsIgnoreCase("quit") || input.isEmpty()) {
