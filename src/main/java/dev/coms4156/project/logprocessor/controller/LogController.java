@@ -66,9 +66,12 @@ public class LogController {
    * Returns 200 OK after completion.
    */
   @PostMapping("/reset")
-  public ResponseEntity<?> resetDatabase() {
-      logService.clearLogs();
-      return ResponseEntity.ok("Log database has been reset.");
+  public ResponseEntity<?> resetLogs(@RequestParam("clientId") String clientId) {
+      if (!logService.clientExists(clientId)) {
+        return ResponseEntity.ok("No log entries to reset for clientId = " + clientId);
+      }
+      logService.resetClientLogs(clientId);
+      return ResponseEntity.ok("Logs reset for clientId = " + clientId);
   }
 
   /**
