@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -16,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import dev.coms4156.project.logprocessor.service.ApiKeyFilter;
 import dev.coms4156.project.logprocessor.service.LogService;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,10 +27,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(LogController.class)
-@Import(LogControllerTest.MockConfig.class)
+@Import({LogControllerTest.MockConfig.class, ApiKeyFilter.class})
+@TestPropertySource(properties = "API_KEY=test-api-key")
 class LogControllerTest {
 
   @Autowired
@@ -62,7 +64,8 @@ class LogControllerTest {
 
     mockMvc.perform(multipart("/logs/upload")
                     .file(mockFile)
-                    .param("clientId", "clientA"))
+                    .param("clientId", "clientA")
+                    .header("x-api-key", "test-api-key"))
             .andExpect(status().isOk())
             .andExpect(content().string("Log file processed successfully."));
 
@@ -77,7 +80,8 @@ class LogControllerTest {
 
     mockMvc.perform(multipart("/logs/upload")
           .file(mockFile)
-          .param("clientId", "  "))
+          .param("clientId", "  ")
+          .header("x-api-key", "test-api-key"))
           .andExpect(status().isBadRequest())
           .andExpect(content().string("clientId cannot be blank."));
   }
@@ -90,7 +94,8 @@ class LogControllerTest {
 
     mockMvc.perform(multipart("/logs/upload")
           .file(mockFile)
-          .param("clientId", "clientA"))
+          .param("clientId", "clientA")
+          .header("x-api-key", "test-api-key"))
           .andExpect(status().isBadRequest())
           .andExpect(content().string("file cannot be empty."));
   }
@@ -103,7 +108,8 @@ class LogControllerTest {
 
     mockMvc.perform(multipart("/logs/upload")
         .file(mockFile)
-        .param("clientId", "clientA"))
+        .param("clientId", "clientA")
+        .header("x-api-key", "test-api-key"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(org.hamcrest.Matchers.is("only .log files are accepted.")));
   }
@@ -120,7 +126,8 @@ class LogControllerTest {
 
     mockMvc.perform(multipart("/logs/upload")
                     .file(mockFile)
-                    .param("clientId", "clientB"))
+                    .param("clientId", "clientB")
+                    .header("x-api-key", "test-api-key"))
             .andExpect(status().isBadRequest())
             .andExpect(content().string(
                     org.hamcrest.Matchers.containsString(
@@ -140,7 +147,8 @@ class LogControllerTest {
     when(logService.countStatusCodesForClient("clientC")).thenReturn(counts);
 
     mockMvc.perform(get("/logs/statusCodeCounts")
-                    .param("clientId", "clientC"))
+                    .param("clientId", "clientC")
+                    .header("x-api-key", "test-api-key"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.200").value(5))
             .andExpect(jsonPath("$.404").value(1));
@@ -155,7 +163,8 @@ class LogControllerTest {
     when(logService.clientExists("missingClient")).thenReturn(false);
 
     mockMvc.perform(get("/logs/statusCodeCounts")
-                    .param("clientId", "missingClient"))
+                    .param("clientId", "missingClient")
+                    .header("x-api-key", "test-api-key"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Error: clientId not found"));
 
@@ -171,7 +180,8 @@ class LogControllerTest {
             "data".getBytes());
 
     mockMvc.perform(multipart("/logs/upload")
-                      .file(file))
+                      .file(file)
+                      .header("x-api-key", "test-api-key"))
               .andExpect(status().isBadRequest());
   }
 
@@ -187,7 +197,8 @@ class LogControllerTest {
 
     mockMvc.perform(multipart("/logs/upload")
                         .file(file)
-                        .param("clientId", longClientId))
+                        .param("clientId", longClientId)
+                        .header("x-api-key", "test-api-key"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Log file processed successfully."));
 
@@ -200,7 +211,8 @@ class LogControllerTest {
 
     mockMvc.perform(multipart("/logs/upload")
                     .file(file)
-                    .param("clientId", "clientA"))
+                    .param("clientId", "clientA")
+                    .header("x-api-key", "test-api-key"))
             .andExpect(status().isBadRequest());
   }
 
@@ -210,7 +222,8 @@ class LogControllerTest {
     when(logService.countStatusCodesForClient("noLogsClient")).thenReturn(new HashMap<>());
 
     mockMvc.perform(get("/logs/statusCodeCounts")
-                    .param("clientId", "noLogsClient"))
+                    .param("clientId", "noLogsClient")
+                    .header("x-api-key", "test-api-key"))
             .andExpect(status().isOk())
             .andExpect(content().json("{}"));
   }
