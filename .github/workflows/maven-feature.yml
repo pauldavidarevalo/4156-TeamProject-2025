@@ -31,5 +31,4 @@ jobs:
             -Dpmd.outputFile=target/pmd-report.txt \
             -Dpmd.failOnViolation=false \
             -Dpmd.analysisCache=true
-          if [ -f target/pmd-report.txt ] && [ -s target/pmd-report.txt ]; then
-            cat target/pmd-report.txt
+          cat target/pmd-report.txt || echo "No PMD violations found"
