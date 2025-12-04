@@ -39,6 +39,15 @@ look at the overall branch coverage by clicking index.html and opening it in a b
 ## Testing endpoints from first iteration
 To test in postman, open a workspace in postman and select Import -> Select File -> select "Log Analytics Service.postman_collection.json" in the top level of this repo.
 
+## Client Program
+The client program is located in src/main/java/dev/coms4155/client/LogProcessorClient.java. It is a standalone program that can be run anytime the service is deployed to the cloud. This client allows the user to upload any amount of new log files and then uses the service to compute analytics on these uploaded logs. Three main plots are generated using these analytics:
+### HTTP Status Codes Count with Health Score
+This plot displays a histogram of the frequency of different status codes from the uploaded logs. It also takes the statusCode response from the service and uses it to compute a health score -- a percentage of status codes that were 1xx-3xx out of the total status codes. This metrics is added to the plot
+### Requests per Hour (highlight suspicious hours)
+This plot combines the response from the timeseries/requests and security/suspicious-ips endpoints. It plots the frequency of requests binned by hour and highlights any hours in which a suspicious ip address -- one that results in more than 5 401 or 403 requests in an hour window -- in red. It also displays the suspicious ip address about the hour bar in which it was found. 
+### Hourly Requests vs Errors
+The last plot combines responses from timeseries/requests and timeseries/error-counts to generate two line plots of the number of requests within an hour in blue and the number of error requests (4xx or 5xx) within an hour. This plot uses both of the timeseries endpoints to help illustrate trends in the types of requests (successful vs error) in the logs.
+
 ## Endpoints
 This summarizes the endpoints from LogController, AnalyticsController, and SecurityController classes, 
 covering the inputs, outputs, and overall functionality for their methods. Any request that does not follow the correct 
