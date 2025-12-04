@@ -29,6 +29,7 @@ public class LogController {
   }
 
   /**
+   * Major unit of code.
    * For client log upload into service.
    * Returns 200 OK on success, 400 BAD REQUEST if clientId or file are blank or file
    * cannot be parsed as a .log file.
@@ -62,6 +63,7 @@ public class LogController {
   }
 
   /**
+   * Major unit of code.
    * Resets the log database by deleting all log entries.
    * Returns 200 OK after completion.
    */
@@ -75,6 +77,7 @@ public class LogController {
   }
 
   /**
+   * Calls the internal log service's status code count function (major unit of code).
    * This endpoint stores the frequency of each status code shown after processing.
    *
    * @param clientId ID input by the client to filter status codes.
