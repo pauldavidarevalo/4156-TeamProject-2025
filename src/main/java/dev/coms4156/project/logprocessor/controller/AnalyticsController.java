@@ -24,6 +24,7 @@ public class AnalyticsController {
   }
 
   /**
+   * Calls the internal log service's top endpoints function (major unit of code).
    * Sample analytics endpoint to be replaced by more logic for security endpoints
    * and features.
    *
@@ -35,6 +36,8 @@ public class AnalyticsController {
   }
 
   /**
+   * Calls the internal log service's get request counts every hour function
+   * (major unit of code).
    * Returns hourly request counts for a specific client.
    * Returns 200 OK if clientExists, 404 NOT FOUND if not.
    * Example:
@@ -51,6 +54,8 @@ public class AnalyticsController {
   }
 
   /**
+   * Calls the internal log service's get error counts every hour function
+   * (major unit of code).
    * Returns hourly 4xx and 5xx error counts for a specific client.
    * Returns 200 OK if clientExists, 404 NOT FOUND if not.
    * Example:

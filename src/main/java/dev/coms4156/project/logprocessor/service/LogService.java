@@ -35,6 +35,7 @@ public class LogService {
       "^(\\S+) \\S+ \\S+ \\[(.+?)\\] \"(\\S+) (\\S+) \\S+\" (\\d{3}) (\\d+|-)");
 
   /**
+   * Major unit of code.
    * Parses each log file extracting each component and creates a new LogEntry
    * object.
    * That LogEntry is saved into a LogEntryRepository which transfers its data
@@ -93,6 +94,7 @@ public class LogService {
   }
 
   /**
+   * Major unit of code.
    * Count status codes for entries matching the provided clientId.
    * Returns a mapping from status code to count.
    */
@@ -116,6 +118,7 @@ public class LogService {
 
   // this function is debugged/fixed with chatgpt generated code
   /**
+   * Major unit of code.
    * Returns a mapping of hour → request count for a given clientId.
    * Example:
    * {
@@ -139,6 +142,7 @@ public class LogService {
 
   // this function is debugged/fixed with chatgpt generated code
   /**
+   * Major unit of code.
    * Returns a mapping of hour → {4xx, 5xx} error counts system-wide.
    * Example:
    * {
@@ -165,6 +169,7 @@ public class LogService {
   }
 
   /**
+   * Major unit of code.
    * Returns a map of IP addresses with their corresponding hour windows and
    * counts of
    * authentication errors.

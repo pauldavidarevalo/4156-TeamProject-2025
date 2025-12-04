@@ -224,7 +224,7 @@ public class LogProcessorClient {
         .filter(e -> e.getKey().startsWith("4") || e.getKey().startsWith("5"))
         .mapToInt(Map.Entry::getValue)
         .sum();
-    double healthScore = ((double) (total - errorCount) / total) * 100.0;
+    double healthScore = (double) (total - errorCount) / total * 100.0;
 
     Map<String, Integer> sorted = new TreeMap<>(statusCounts);
 
@@ -324,7 +324,7 @@ public class LogProcessorClient {
       System.out.print("Enter path to log file (or type 'quit' to begin processing): ");
       String input = scanner.nextLine().trim();
 
-      if (input.equalsIgnoreCase("quit") || input.isEmpty()) {
+      if ("quit".equalsIgnoreCase(input) || input.isEmpty()) {
         System.out.println("Exiting log upload loop.");
         break;
       }

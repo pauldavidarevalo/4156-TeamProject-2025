@@ -26,6 +26,8 @@ public class SecurityController {
   }
 
   /**
+   * Calls the internal log service's retrieval of IPs with authorization errors
+   * function (major unit of code).
    * Get IPs with 5 or more authentication errors (401 or 403 status codes).
    * Returns a list of maps, each containing an hourWindow, ipAddress, and count of auth errors.
    * Returns 200 OK if clientExists, 404 NOT FOUND if not.
