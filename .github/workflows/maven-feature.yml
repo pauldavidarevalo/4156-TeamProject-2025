@@ -9,7 +9,7 @@ on:
 jobs:
 
   test:
-    name: Unit Test
+    name: Automatic Style Checker, Bug Finder, and Test Suite Runner
     runs-on: ubuntu-latest
 
     steps:
@@ -21,5 +21,11 @@ jobs:
           distribution: 'temurin'
       - name: Maven Package
         run: mvn -B clean package -DskipTests
-      - name: Maven Verify
-        run: mvn -B clean verify
+      - name: Maven Verify and Fail on Checkstyle Warnings
+        run: mvn -B clean verify checkstyle:check -Dcheckstyle.failOnViolation=true
+      - name: Run PMD Static Analysis
+        run: |
+          mvn pmd:pmd \
+            -Dpmd.rulesets=category/java/bestpractices.xml,category/java/codestyle.xml,category/java/design.xml \
+            -Dpmd.format=text \
+            -Dpmd.analysisCache=true
