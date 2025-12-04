@@ -30,4 +30,8 @@ jobs:
           mvn pmd:pmd \
             -Dpmd.rulesets=category/java/bestpractices.xml,category/java/codestyle.xml,category/java/design.xml \
             -Dpmd.format=text \
+            -Dpmd.outputFile=target/pmd-report.txt \
+            -Dpmd.failOnViolation=false \
             -Dpmd.analysisCache=true
+          if [ -f target/pmd-report.txt ] && [ -s target/pmd-report.txt ]; then
+            cat target/pmd-report.txt
