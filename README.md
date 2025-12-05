@@ -17,7 +17,9 @@ Make sure to run and install the following:
 - Download the PMD Source Code Analyzer: https://pmd.github.io/
 - Clone the repo using the command "git clone https://github.com/pauldavidarevalo/4156-TeamProject-2025.git"
 - Go into the root folder and run the command "mvn compile" to compile the project with Maven
-- You should then run the command "mvn spring-boot:run" to actually run the application
+- Set the env var "API_KEY". Since this is a local server, you decide your own key! Bash example: export API_KEY=localKey
+- You need to include this as a header in all of your requests: key: x-api-key value: localKey
+- You should then run the command "mvn spring-boot:run -Dspring-boot.run.profiles=local" to actually run the service
 - You will then be able to make requests at 127.0.0.1:8080 or localhost:8080
 - If you have issues making POST multipart requests, create a free Postman account here: https://www.postman.com/
 - Download the Desktop Agent for Postman so that you can make requests locally
@@ -39,14 +41,28 @@ look at the overall branch coverage by clicking index.html and opening it in a b
 ## Testing endpoints from first iteration
 To test in postman, open a workspace in postman and select Import -> Select File -> select "Log Analytics Service.postman_collection.json" in the top level of this repo.
 
-## Client Program
-The client program is located in src/main/java/dev/coms4155/client/LogProcessorClient.java. It is a standalone program that can be run anytime the service is deployed to the cloud. This client allows the user to upload any amount of new log files and then uses the service to compute analytics on these uploaded logs. Three main plots are generated using these analytics:
 ### HTTP Status Codes Count with Health Score
 This plot displays a histogram of the frequency of different status codes from the uploaded logs. It also takes the statusCode response from the service and uses it to compute a health score -- a percentage of status codes that were 1xx-3xx out of the total status codes. This metrics is added to the plot
 ### Requests per Hour (highlight suspicious hours)
 This plot combines the response from the timeseries/requests and security/suspicious-ips endpoints. It plots the frequency of requests binned by hour and highlights any hours in which a suspicious ip address -- one that results in more than 5 401 or 403 requests in an hour window -- in red. It also displays the suspicious ip address about the hour bar in which it was found. 
 ### Hourly Requests vs Errors
 The last plot combines responses from timeseries/requests and timeseries/error-counts to generate two line plots of the number of requests within an hour in blue and the number of error requests (4xx or 5xx) within an hour. This plot uses both of the timeseries endpoints to help illustrate trends in the types of requests (successful vs error) in the logs.
+### Running the Client
+The client program is located in src/main/java/dev/coms4155/client/LogProcessorClient.java. Before running the client, you must decide whether to run the service locally or use the service deployed on the cloud. To run the service locally, see [Building and Running a Local Instance](#building-and-running-a-local-instance).
+Once the service is running, you can open LogProcessorClient.java in your IDE and select Run. The client program has also been packaged into a JAR, which can be run with mvn spring-boot:run -Dstart-class=dev.coms4156.client.LogProcessorClient. You will be asked to enter a Service URL. The default is the location of the deployed service: https://logprocessor-service-445982800820.us-central1.run.app. If running locally, type http://localhost:8080.
+
+It will then prompt for a client ID. Make this whatever you'd like to distinguish between clients. It will then prompt for an API key. Use your real API key or your local one depending on where the service is running. It will then prompt if you'd like to remove any previously uploaded log files with that client. Lastly, it will continuously prompt you for the path to log files to upload. Upload none or as many as you'd like, then type 'quit'. If no log files for your clientId are found in the database after this stage, it will exit. Otherwise, it will finally run the body of the client program to generate plots by combining and computing new analytics from the requests automatically made to the service. If any suspicious ip addresses have been found, it will output them to terminal and display them in the "Requests per Hour (highlight suspicious hours)" plot above any suspicious hour windows.
+You may run the service again and enter the same clientId to analyze the same logs, add more logs, or start from scratch.
+### Multiple instances of the client
+Multiple instances of the client can use the same service. Open two separate terminals for each client. In each, set the API_KEY env var differently. Then choose a different clientId when running the client program. This will keep data between clients separated and allow for multiple clients to use the service simulatenously.
+## How a third party could make a client program
+The service exposes a REST API that can be called from any programming language or environment capable of making HTTP requests. Below is a checklist of prerequistes:
+- Determine whether you are connecting to a local instance (http://localhost:8080) or a deployed instance (e.g., https://logprocessor-service-445982800820.us-central1.run.app)
+- The client must include the x-api-key header in every request.
+- clientId: the client program should have some way of separating clientId's and ensuring each instances of the client program uses its own clientId value for all requests.
+If you choose Java, common libraries are RestTemplate (used in our integration test LogProcessorIntegrationTest.java), RestClient (used in our client program LogProcessorClient.java). Feel free to consult these files for example requests.
+
+Any client of this service will likely be structured to make /upload requests and the call all other endpoints for analytics and security features. Consult the following API documentation for details regarding each endpoint.
 
 ## Endpoints
 This summarizes the endpoints from LogController, AnalyticsController, and SecurityController classes, 
@@ -54,6 +70,8 @@ covering the inputs, outputs, and overall functionality for their methods. Any r
 endpoint structure will cause an HTTP 400 Bad Request response. If the service is not running (the commands "mvn compile" 
 and "mvn spring-boot:run" are not used), there will be generic error message saying "This site can't be reached 127.0.0.1 
 refused to connect." on the page. As a side note, there is an option to check the "Pretty-print" box so that the JSON response looks well-formatted.
+
+For all requests, ensure the x-api-key is included in the header. In Postman (recommended): Go to the Headers tab, add a new header, Key="x-api-key", Value=<copy your real API if deployed, or your local>
 
 ### GET /analytics/top-endpoints
 - Expected Input Parameters: N/A
@@ -107,6 +125,24 @@ refused to connect." on the page. As a side note, there is an option to check th
 - Upon Success: HTTP 200 Status Code is returned with the suspicious IPs array in the response body
 - Upon Failure: N/A (There are no exceptions thrown and no error responses are generated)
 - Endpoint Link: http://127.0.0.1:8080/security/suspicious-ips
+
+### POST /logs/reset
+- Expected Input Parameters: clientId (String, query parameter) – the client ID whose logs should be reset.
+- Expected Output: A String message confirming the reset or indicating that no logs existed for the client.
+- Deletes all log entries in the database for the given clientId. If no entries exist, it simply reports that nothing was deleted. This endpoint is mainly used by client programs to start fresh or remove old logs.
+- Upon Success: HTTP 200 Status Code with either:
+- - "Logs reset for clientId = <clientId>" if logs were deleted
+- - "No log entries to reset for clientId = <clientId>" if no logs existed
+- Upon Failure: N/A – the endpoint always returns 200 OK even if no logs exist
+- Endpoint Link: http://127.0.0.1:8080/logs/reset?clientId={clientId}
+
+### GET /logs/exists
+- Expected Input Parameters: clientId (String, query parameter) – the client ID to check for log entries.
+- Expected Output: true if at least one log entry exists for the client. false if no log entries exist
+- Checks whether any log entries exist for the given clientId. Primarily used by client programs to verify if logs have already been uploaded.
+- Upon Success: HTTP 200 Status Code with true or false in the response body
+- Upon Failure: N/A – the endpoint always returns 200 OK with a boolean result
+- Endpoint Link: http://127.0.0.1:8080/logs/exists?clientId={clientId}
 
 ## API Tests
 
