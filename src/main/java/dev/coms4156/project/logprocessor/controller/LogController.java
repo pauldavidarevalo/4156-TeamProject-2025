@@ -77,17 +77,6 @@ public class LogController {
   }
 
   /**
-   * NOT a major unit. Checks whether any log entries exist for a given clientId.
-   * Supports client program
-   * @param clientId ID input by the client to check existence.
-   * @return true if entries exist, false otherwise.
-   */
-  @GetMapping("/exists")
-  public boolean clientExists(@RequestParam String clientId) {
-    return logService.clientExists(clientId);
-  }
-
-  /**
    * Calls the internal log service's status code count function (major unit of code).
    * This endpoint stores the frequency of each status code shown after processing.
    *

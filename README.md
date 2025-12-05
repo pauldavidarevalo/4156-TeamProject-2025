@@ -17,8 +17,6 @@ Make sure to run and install the following:
 - Download the PMD Source Code Analyzer: https://pmd.github.io/
 - Clone the repo using the command "git clone https://github.com/pauldavidarevalo/4156-TeamProject-2025.git"
 - Go into the root folder and run the command "mvn compile" to compile the project with Maven
-- Set the env var "API_KEY". Since this is a local server, you decide your own key! Bash example: export API_KEY=localKey
-- You need to include this as a header in all of your requests: key: x-api-key value: localKey
 - You should then run the command "mvn spring-boot:run" to actually run the application
 - You will then be able to make requests at 127.0.0.1:8080 or localhost:8080
 - If you have issues making POST multipart requests, create a free Postman account here: https://www.postman.com/
@@ -49,13 +47,6 @@ This plot displays a histogram of the frequency of different status codes from t
 This plot combines the response from the timeseries/requests and security/suspicious-ips endpoints. It plots the frequency of requests binned by hour and highlights any hours in which a suspicious ip address -- one that results in more than 5 401 or 403 requests in an hour window -- in red. It also displays the suspicious ip address about the hour bar in which it was found. 
 ### Hourly Requests vs Errors
 The last plot combines responses from timeseries/requests and timeseries/error-counts to generate two line plots of the number of requests within an hour in blue and the number of error requests (4xx or 5xx) within an hour. This plot uses both of the timeseries endpoints to help illustrate trends in the types of requests (successful vs error) in the logs.
-### Running the Client
-Before running the client, you must decide whether to run the service locally or use the service deployed on the cloud. To run the service locally, see [Building and Running a Local Instance](#building-and-running-a-local-instance).
-Once the service is running, you can open LogProcessorClient.java in your IDE and select Run. The client program has also been packaged into a JAR, which can be run with mvn spring-boot:run -Dstart-class=dev.coms4156.client.LogProcessorClient. You will be asked to enter a Service URL. The default is the location of the deployed service: https://logprocessor-service-445982800820.us-central1.run.app. If running locally, type http://localhost:8080.
-It will then prompt for a client ID. Make this whatever you'd like to distinguish between clients. It will then prompt for an API key. Use your real API key or your local one depending on where the service is running. It will then prompt if you'd like to remove any previously uploaded log files with that client. Lastly, it will continuously prompt you for the path to log files to upload. Upload none or as many as you'd like, then type 'quit'. If no log files for your clientId are found in the database after this stage, it will exit. Otherwise, it will finally run the body of the client program to generate plots by combining and computing new analytics from the requests automatically made to the service. If any suspicious ip addresses have been found, it will output them to terminal and display them in the "Requests per Hour (highlight suspicious hours)" plot above any suspicious hour windows.
-You may run the service again and enter the same clientId to analyze the same logs, add more logs, or start from scratch.
-### Multiple instances of the client
-Multiple instances of the client can use the same service. Open two separate terminals for each client. In each, set the API_KEY env var differently. Then choose a different clientId when running the client program. This will keep data between clients separated and allow for multiple clients to use the service simulatenously.
 
 ## Endpoints
 This summarizes the endpoints from LogController, AnalyticsController, and SecurityController classes, 
@@ -63,8 +54,6 @@ covering the inputs, outputs, and overall functionality for their methods. Any r
 endpoint structure will cause an HTTP 400 Bad Request response. If the service is not running (the commands "mvn compile" 
 and "mvn spring-boot:run" are not used), there will be generic error message saying "This site can't be reached 127.0.0.1 
 refused to connect." on the page. As a side note, there is an option to check the "Pretty-print" box so that the JSON response looks well-formatted.
-
-For all requests, ensure the x-api-key is included in the header. In Postman (recommended): Go to the Headers tab, add a new header, Key="x-api-key", Value=<copy your real API if deployed, or your local>
 
 ### GET /analytics/top-endpoints
 - Expected Input Parameters: N/A
