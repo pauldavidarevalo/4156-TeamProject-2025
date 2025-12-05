@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnalyticsController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">logprocessor</a> &gt; <a href="index.source.html" class="el_package">dev.coms4156.project.logprocessor.controller</a> &gt; <span class="el_source">AnalyticsController.java</span></div><h1>AnalyticsController.java</h1><pre class="source lang-java linenums">package dev.coms4156.project.logprocessor.controller;
+
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
+
+import dev.coms4156.project.logprocessor.service.LogService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * This file represents endpoints with the LogService controller for
+ * analytics on the uploaded logs.
+ */
+@RestController
+@RequestMapping(&quot;/analytics&quot;)
+public class AnalyticsController {
+  private final LogService logService;
+
+<span class="fc" id="L22">  public AnalyticsController(LogService logService) {</span>
+<span class="fc" id="L23">    this.logService = logService;</span>
+<span class="fc" id="L24">  }</span>
+
+  /**
+   * Calls the internal log service's top endpoints function (major unit of code).
+   * Sample analytics endpoint to be replaced by more logic for security endpoints
+   * and features.
+   *
+   * @return A JSON array of [endpoint, count] arrays sorted by frequency descending (most to least)
+   */
+  @GetMapping(&quot;/top-endpoints&quot;)
+  public Object getTopEndpoints() {
+<span class="fc" id="L35">    return logService.getTopEndpoints();</span>
+  }
+
+  /**
+   * Calls the internal log service's get request counts every hour function
+   * (major unit of code).
+   * Returns hourly request counts for a specific client.
+   * Returns 200 OK if clientExists, 404 NOT FOUND if not.
+   * Example:
+   * GET /analytics/timeseries/requests/clientA
+   *
+   * @return A JSON object mapping hour strings to request counts
+   */
+  @GetMapping(&quot;/timeseries/requests/{clientId}&quot;)
+  public ResponseEntity&lt;?&gt; getRequestCountsByHour(@PathVariable String clientId) {
+<span class="fc bfc" id="L50" title="All 2 branches covered.">    if (!logService.clientExists(clientId)) {</span>
+<span class="fc" id="L51">      return new ResponseEntity&lt;&gt;(&quot;Error: clientId not found&quot;, NOT_FOUND);</span>
+    }
+<span class="fc" id="L53">    return new ResponseEntity&lt;&gt;(logService.getRequestCountsByHour(clientId), OK);</span>
+  }
+
+  /**
+   * Calls the internal log service's get error counts every hour function
+   * (major unit of code).
+   * Returns hourly 4xx and 5xx error counts for a specific client.
+   * Returns 200 OK if clientExists, 404 NOT FOUND if not.
+   * Example:
+   * GET /analytics/timeseries/error-counts/clientA
+   *
+   * @return A JSON object mapping hour strings to {4xx, 5xx} error counts
+   */
+  @GetMapping(&quot;/timeseries/error-counts/{clientId}&quot;)
+  public ResponseEntity&lt;?&gt; getErrorCountsByHour(@PathVariable String clientId) {
+<span class="fc bfc" id="L68" title="All 2 branches covered.">    if (!logService.clientExists(clientId)) {</span>
+<span class="fc" id="L69">      return new ResponseEntity&lt;&gt;(&quot;Error: clientId not found&quot;, NOT_FOUND);</span>
+    }
+<span class="fc" id="L71">    return new ResponseEntity&lt;&gt;(logService.getErrorCountsByHour(clientId), OK);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

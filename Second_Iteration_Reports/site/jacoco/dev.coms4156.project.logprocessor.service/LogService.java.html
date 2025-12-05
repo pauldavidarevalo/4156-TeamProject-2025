@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LogService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">logprocessor</a> &gt; <a href="index.source.html" class="el_package">dev.coms4156.project.logprocessor.service</a> &gt; <span class="el_source">LogService.java</span></div><h1>LogService.java</h1><pre class="source lang-java linenums">package dev.coms4156.project.logprocessor.service;
+
+import dev.coms4156.project.logprocessor.model.LogEntry;
+import dev.coms4156.project.logprocessor.repository.LogEntryRepository;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.springframework.stereotype.Service;
+
+/**
+ * Service layer for processing log files and querying log data.
+ * Each method here may be called by a controller to handle specific
+ * endpoints.
+ */
+@Service
+public class LogService {
+  private final LogEntryRepository repo;
+
+<span class="fc" id="L29">  public LogService(LogEntryRepository repo) {</span>
+<span class="fc" id="L30">    this.repo = repo;</span>
+<span class="fc" id="L31">  }</span>
+
+  // Simple Apache log pattern (combined format)
+<span class="fc" id="L34">  private static final Pattern LOG_PATTERN = Pattern.compile(</span>
+      &quot;^(\\S+) \\S+ \\S+ \\[(.+?)\\] \&quot;(\\S+) (\\S+) \\S+\&quot; (\\d{3}) (\\d+|-)&quot;);
+
+  /**
+   * Major unit of code.
+   * Parses each log file extracting each component and creates a new LogEntry
+   * object.
+   * That LogEntry is saved into a LogEntryRepository which transfers its data
+   * into the
+   * database.
+   *
+   * @param fileStream input stream of the file given by the client
+   * @param clientId   ID input by the client
+   * @throws Exception thrown if input stream cannot be read
+   */
+  public void processLogFile(InputStream fileStream, String clientId) throws Exception {
+<span class="fc" id="L50">    try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream))) {</span>
+      String line;
+<span class="fc bfc" id="L52" title="All 2 branches covered.">      while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L53">        Matcher matcher = LOG_PATTERN.matcher(line);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (matcher.find()) {</span>
+<span class="fc" id="L55">          String ip = matcher.group(1);</span>
+<span class="fc" id="L56">          String time = matcher.group(2);</span>
+<span class="fc" id="L57">          String method = matcher.group(3);</span>
+<span class="fc" id="L58">          String endpoint = matcher.group(4);</span>
+<span class="fc" id="L59">          int status = Integer.parseInt(matcher.group(5));</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">          long size = &quot;-&quot;.equals(matcher.group(6)) ? 0 : Long.parseLong(matcher.group(6));</span>
+
+          OffsetDateTime offsetDateTime;
+          try {
+<span class="fc" id="L64">            DateTimeFormatter dtf =</span>
+<span class="fc" id="L65">                  DateTimeFormatter.ofPattern(&quot;dd/MMM/yyyy:HH:mm:ss Z&quot;, Locale.ENGLISH);</span>
+<span class="fc" id="L66">            offsetDateTime = OffsetDateTime.parse(time, dtf);</span>
+<span class="fc" id="L67">          } catch (Exception e) {</span>
+<span class="fc" id="L68">            throw new IllegalArgumentException(&quot;Failed to parse timestamp: &quot; + time, e);</span>
+<span class="fc" id="L69">          }</span>
+          // drops timezone
+<span class="fc" id="L71">          LocalDateTime timestamp = offsetDateTime.toLocalDateTime();</span>
+
+<span class="fc" id="L73">          LogEntry entry = new LogEntry(clientId, ip, method, endpoint, status, size, timestamp);</span>
+<span class="fc" id="L74">          repo.save(entry);</span>
+        }
+<span class="fc" id="L76">      }</span>
+    }
+<span class="fc" id="L78">  }</span>
+
+  /**
+   * Deletes all log entries from the database for a specific clientId.
+   */
+  public void resetClientLogs(String clientId) {
+<span class="nc" id="L84">    repo.deleteByClientId(clientId);</span>
+<span class="nc" id="L85">  }</span>
+
+  /**
+   * Sample method analytics to be replaced by security endpoint features.
+   *
+   * @return array sorted by frequency descending (most to least) endpoints
+   */
+  public Object getTopEndpoints() {
+<span class="fc" id="L93">    return repo.findTopEndpoints();</span>
+  }
+
+  /**
+   * Major unit of code.
+   * Count status codes for entries matching the provided clientId.
+   * Returns a mapping from status code to count.
+   */
+  public Map&lt;Integer, Integer&gt; countStatusCodesForClient(String clientId) {
+<span class="fc" id="L102">    Map&lt;Integer, Integer&gt; result = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L103">    List&lt;Object[]&gt; rows = repo.countStatusCodesByClientId(clientId);</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">    for (Object[] row : rows) {</span>
+<span class="fc" id="L105">      Integer status = (Integer) row[0];</span>
+<span class="fc" id="L106">      Long count = (Long) row[1];</span>
+<span class="fc" id="L107">      result.put(status, count.intValue());</span>
+<span class="fc" id="L108">    }</span>
+<span class="fc" id="L109">    return result;</span>
+  }
+
+  /**
+   * Returns true if at least one LogEntry exists for the provided clientId.
+   */
+  public boolean clientExists(String clientId) {
+<span class="fc" id="L116">    return repo.existsByClientId(clientId);</span>
+  }
+
+  // this function is debugged/fixed with chatgpt generated code
+  /**
+   * Major unit of code.
+   * Returns a mapping of hour → request count for a given clientId.
+   * Example:
+   * {
+   * &quot;2025-10-20T13:00:00&quot;: 15,
+   * &quot;2025-10-20T14:00:00&quot;: 28
+   * }
+   */
+  public Map&lt;String, Integer&gt; getRequestCountsByHour(String clientId) {
+<span class="fc" id="L130">    List&lt;Object[]&gt; rows = repo.countRequestsByHour(clientId);</span>
+<span class="fc" id="L131">    Map&lt;String, Integer&gt; result = new LinkedHashMap&lt;&gt;();</span>
+
+<span class="fc bfc" id="L133" title="All 2 branches covered.">    for (Object[] row : rows) {</span>
+<span class="fc" id="L134">      Object hourObj = row[0];</span>
+<span class="fc" id="L135">      String hourStr = hourObj.toString();</span>
+<span class="fc" id="L136">      Number count = (Number) row[1]; // Works for Integer or Long</span>
+<span class="fc" id="L137">      result.put(hourStr, count.intValue());</span>
+<span class="fc" id="L138">    }</span>
+
+<span class="fc" id="L140">    return result;</span>
+  }
+
+  // this function is debugged/fixed with chatgpt generated code
+  /**
+   * Major unit of code.
+   * Returns a mapping of hour → {4xx, 5xx} error counts system-wide.
+   * Example:
+   * {
+   * &quot;2025-10-20T13:00:00&quot;: {&quot;4xx&quot;: 3, &quot;5xx&quot;: 1}
+   * }
+   */
+  public Map&lt;String, Map&lt;String, Integer&gt;&gt; getErrorCountsByHour(String clientId) {
+<span class="fc" id="L153">    List&lt;Object[]&gt; rows = repo.countErrorCodesByHour(clientId);</span>
+<span class="fc" id="L154">    Map&lt;String, Map&lt;String, Integer&gt;&gt; result = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">    for (Object[] row : rows) {</span>
+<span class="fc" id="L156">      Object hourObj = row[0];</span>
+<span class="fc" id="L157">      String hourStr = hourObj.toString();</span>
+
+<span class="fc" id="L159">      Long count4xx = ((Number) row[1]).longValue();</span>
+<span class="fc" id="L160">      Long count5xx = ((Number) row[2]).longValue();</span>
+
+<span class="fc" id="L162">      Map&lt;String, Integer&gt; inner = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L163">      inner.put(&quot;4xx&quot;, count4xx.intValue());</span>
+<span class="fc" id="L164">      inner.put(&quot;5xx&quot;, count5xx.intValue());</span>
+<span class="fc" id="L165">      result.put(hourStr, inner);</span>
+<span class="fc" id="L166">    }</span>
+
+<span class="fc" id="L168">    return result;</span>
+  }
+
+  /**
+   * Major unit of code.
+   * Returns a map of IP addresses with their corresponding hour windows and
+   * counts of
+   * authentication errors.
+   * Example:
+   * [
+   * {&quot;ipAddress&quot;: &quot;192.168.1.1&quot;, &quot;hourWindow&quot;: &quot;2025-10-20T13:00:00&quot;,
+   * &quot;errorCount&quot;: 7}
+   * ]
+   */
+  public List&lt;Map&lt;String, Object&gt;&gt; getIpsWithManyAuthErrors(String clientId) {
+<span class="fc" id="L183">    int threshold = 5;</span>
+<span class="fc" id="L184">    List&lt;Object[]&gt; results = repo.findIpsWithManyAuthErrors(threshold, clientId);</span>
+<span class="fc" id="L185">    return results.stream()</span>
+<span class="fc" id="L186">        .map(row -&gt; Map.of(</span>
+            &quot;ipAddress&quot;, row[0],
+<span class="fc" id="L188">            &quot;hourWindow&quot;, row[1].toString(),</span>
+            &quot;errorCount&quot;, row[2]))
+<span class="fc" id="L190">        .toList();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
