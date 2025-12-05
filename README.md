@@ -41,8 +41,6 @@ look at the overall branch coverage by clicking index.html and opening it in a b
 ## Testing endpoints from first iteration
 To test in postman, open a workspace in postman and select Import -> Select File -> select "Log Analytics Service.postman_collection.json" in the top level of this repo.
 
-## Client Program
-The client program is located in src/main/java/dev/coms4155/client/LogProcessorClient.java. It is a standalone program that can be run anytime the service is deployed to the cloud. This client allows the user to upload any amount of new log files and then uses the service to compute analytics on these uploaded logs. Three main plots are generated using these analytics:
 ### HTTP Status Codes Count with Health Score
 This plot displays a histogram of the frequency of different status codes from the uploaded logs. It also takes the statusCode response from the service and uses it to compute a health score -- a percentage of status codes that were 1xx-3xx out of the total status codes. This metrics is added to the plot
 ### Requests per Hour (highlight suspicious hours)
@@ -50,7 +48,7 @@ This plot combines the response from the timeseries/requests and security/suspic
 ### Hourly Requests vs Errors
 The last plot combines responses from timeseries/requests and timeseries/error-counts to generate two line plots of the number of requests within an hour in blue and the number of error requests (4xx or 5xx) within an hour. This plot uses both of the timeseries endpoints to help illustrate trends in the types of requests (successful vs error) in the logs.
 ### Running the Client
-Before running the client, you must decide whether to run the service locally or use the service deployed on the cloud. To run the service locally, see [Building and Running a Local Instance](#building-and-running-a-local-instance).
+The client program is located in src/main/java/dev/coms4155/client/LogProcessorClient.java. Before running the client, you must decide whether to run the service locally or use the service deployed on the cloud. To run the service locally, see [Building and Running a Local Instance](#building-and-running-a-local-instance).
 Once the service is running, you can open LogProcessorClient.java in your IDE and select Run. The client program has also been packaged into a JAR, which can be run with mvn spring-boot:run -Dstart-class=dev.coms4156.client.LogProcessorClient. You will be asked to enter a Service URL. The default is the location of the deployed service: https://logprocessor-service-445982800820.us-central1.run.app. If running locally, type http://localhost:8080.
 
 It will then prompt for a client ID. Make this whatever you'd like to distinguish between clients. It will then prompt for an API key. Use your real API key or your local one depending on where the service is running. It will then prompt if you'd like to remove any previously uploaded log files with that client. Lastly, it will continuously prompt you for the path to log files to upload. Upload none or as many as you'd like, then type 'quit'. If no log files for your clientId are found in the database after this stage, it will exit. Otherwise, it will finally run the body of the client program to generate plots by combining and computing new analytics from the requests automatically made to the service. If any suspicious ip addresses have been found, it will output them to terminal and display them in the "Requests per Hour (highlight suspicious hours)" plot above any suspicious hour windows.
