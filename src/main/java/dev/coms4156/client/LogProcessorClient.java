@@ -336,6 +336,7 @@ public class LogProcessorClient {
       }
 
       try {
+        System.out.println("Uploading log file. This may take some time... ");
         String response = uploadLogFile(clientId, logFile);
         System.out.println("Upload response: " + response);
       } catch (Exception e) {
@@ -344,45 +345,67 @@ public class LogProcessorClient {
     }
   }
 
+  public boolean clientExists(String clientId) {
+    return restClient.get()
+        .uri("/logs/exists?clientId=" + clientId)
+        .retrieve()
+        .body(Boolean.class);
+  }
   /**
    * Main method to run the client and display plots.
    */
   public static void main(String[] args) {
-    Scanner scanner = new Scanner(System.in);
-    System.out.print("Enter Client ID: ");
-    String clientId = scanner.nextLine().trim();
-    System.out.print("Enter API Key: ");
-    String apiKey = scanner.nextLine().trim();
+    try (Scanner scanner = new Scanner(System.in)) {
+      System.out.print("Enter Service URL (default deployed url: "
+          + "https://logprocessor-service-445982800820.us-central1.run.app): ");
+      System.out.println("Or local url: http://localhost:8080");
+      String url = scanner.nextLine().trim();
+      if (url.isEmpty()) {
+        url = "https://logprocessor-service-445982800820.us-central1.run.app";
+      }
+      System.out.print("Enter Client ID: ");
+      String clientId = scanner.nextLine().trim();
+      System.out.print("Enter API Key: ");
+      String apiKey = scanner.nextLine().trim();
 
-    LogProcessorClient client = new LogProcessorClient(
-        "https://logprocessor-service-445982800820.us-central1.run.app",
-        apiKey);
+      LogProcessorClient client = new LogProcessorClient(url, apiKey);
 
-    String response = client.resetLogs(clientId);
-    System.out.println(response);
+      System.out.print("Would you like to reset logs for this client before uploading? (yes/no): ");
+      String resetResponse = scanner.nextLine().trim();
+      if ("yes".equalsIgnoreCase(resetResponse)) {
+        String response = client.resetLogs(clientId);
+        System.out.println(response);
+      }
 
-    client.uploadLogsLoop(scanner, clientId);
-    scanner.close();
+      client.uploadLogsLoop(scanner, clientId);
+      if (!client.clientExists(clientId)) {
+        System.out.println("No logs found for clientId: " + clientId
+            + ". Exiting program.");
+        scanner.close();
+        return;
+      }
+      scanner.close();
 
-    Map<String, Integer> result = client.getStatusCodeCounts(clientId);
-    plotStatusCodes(result);
+      Map<String, Integer> result = client.getStatusCodeCounts(clientId);
+      plotStatusCodes(result);
 
-    Map<String, Integer> hourly = client.getRequestCountsByHour(clientId);
-    List<Map<String, Object>> suspicious = client.getSuspiciousIps(clientId);
-    System.out.println("Suspicious IPs identified:");
-    if (suspicious.isEmpty()) {
-      System.out.println("No suspicious IPs identified:");
-    } else {
-      suspicious.forEach(entry -> {
-        System.out.println(
-            entry.get("hourWindow") + " | "
-                + entry.get("ipAddress") + " | "
-                + "total suspicious requests: " + entry.get("errorCount"));
-      });
+      Map<String, Integer> hourly = client.getRequestCountsByHour(clientId);
+      List<Map<String, Object>> suspicious = client.getSuspiciousIps(clientId);
+      System.out.println("Suspicious IPs identified:");
+      if (suspicious.isEmpty()) {
+        System.out.println("No suspicious IPs identified:");
+      } else {
+        suspicious.forEach(entry -> {
+          System.out.println(
+              entry.get("hourWindow") + " | "
+                  + entry.get("ipAddress") + " | "
+                  + "total suspicious requests: " + entry.get("errorCount"));
+        });
+      }
+      plotSuspiciousHours(hourly, suspicious);
+
+      Map<String, Map<String, Integer>> errorsByHour = client.getErrorCountsByHour(clientId);
+      client.plotTimeSeriesWithErrors(clientId, errorsByHour, hourly);
     }
-    plotSuspiciousHours(hourly, suspicious);
-
-    Map<String, Map<String, Integer>> errorsByHour = client.getErrorCountsByHour(clientId);
-    client.plotTimeSeriesWithErrors(clientId, errorsByHour, hourly);
   }
 }
