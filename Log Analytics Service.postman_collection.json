@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "c4751713-b753-4397-a051-dd6c03ae470e",
+		"_postman_id": "b691b59f-e6d0-45fa-a458-b43fdcc7774c",
 		"name": "Log Analytics Service",
-		"description": "Collection for testing the Log Analytics Service endpoints",
+		"description": "Collection for testing the Log Analytics Service endpoints. If calling the deployed service, use url: [https://logprocessor-service-445982800820.us-central1.run.app.](https://logprocessor-service-445982800820.us-central1.run.app.)  \nOtherwise, continue with [http://localhost:8080](http://localhost:8080)\n\nFor all requests you must fill in the Header with Key=x-api-key, Value=\\[your API key\\]\n\nIf running locally, you set your API key as an env variable before starting the server. If using the deployed server, you need an API given to you.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "48308900"
 	},
@@ -11,18 +11,24 @@
 			"name": "/upload",
 			"request": {
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "localKey",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "formdata",
 					"formdata": [
 						{
 							"key": "file",
 							"type": "file",
-							"src": "/C:/gitRepos/4156-TeamProject-2025/sampleLogs/sampleApacheSimple.log"
+							"src": []
 						},
 						{
 							"key": "clientId",
-							"value": "client123",
+							"value": "susClient",
 							"type": "text"
 						}
 					]
@@ -39,7 +45,7 @@
 						"upload"
 					]
 				},
-				"description": "You must upload a log file from the sampleLogs directory in the repo"
+				"description": "You must upload a log file from the sampleLogs directory in the repo. Recommend using fullDayLog1.log or fullDayLog2.log for complex data."
 			},
 			"response": []
 		},
@@ -47,9 +53,15 @@
 			"name": "/statusCodeCounts",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "localKey",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": "http://localhost:8080/logs/statusCodeCounts?clientId=client123",
+					"raw": "http://localhost:8080/logs/statusCodeCounts?clientId=clientA",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -62,7 +74,7 @@
 					"query": [
 						{
 							"key": "clientId",
-							"value": "client123"
+							"value": "clientA"
 						}
 					]
 				}
@@ -73,7 +85,13 @@
 			"name": "/top-endpoints",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "localKey",
+						"type": "text"
+					}
+				],
 				"url": {
 					"raw": "http://localhost:8080/analytics/top-endpoints",
 					"protocol": "http",
@@ -106,7 +124,7 @@
 							]
 						}
 					},
-					"_postman_previewlanguage": "",
+					"_postman_previewlanguage": "Text",
 					"header": [],
 					"cookie": [],
 					"body": ""
@@ -117,9 +135,15 @@
 			"name": "/timeseries/requests/",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "localKey",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": "http://localhost:8080/analytics/timeseries/requests/client123",
+					"raw": "http://localhost:8080/analytics/timeseries/requests/clientA",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -129,7 +153,7 @@
 						"analytics",
 						"timeseries",
 						"requests",
-						"client123"
+						"clientA"
 					]
 				}
 			},
@@ -139,9 +163,15 @@
 			"name": "/timeseries/error-counts",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "localKey",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": "http://localhost:8080/analytics/timeseries/error-counts/client123",
+					"raw": "http://localhost:8080/analytics/timeseries/error-counts/clientA",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -151,7 +181,7 @@
 						"analytics",
 						"timeseries",
 						"error-counts",
-						"client123"
+						"clientA"
 					]
 				}
 			},
@@ -161,7 +191,96 @@
 			"name": "/security/suspicious-ips",
 			"request": {
 				"method": "GET",
-				"header": []
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "localKey",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/security/suspicious-ips/susClient",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"security",
+						"suspicious-ips",
+						"susClient"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/reset",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "localKey",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/logs/reset?clientId=clientA",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"logs",
+						"reset"
+					],
+					"query": [
+						{
+							"key": "clientId",
+							"value": "clientA"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/exists",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "localKey",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/logs/exists?clientId=clientA",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"logs",
+						"exists"
+					],
+					"query": [
+						{
+							"key": "clientId",
+							"value": "clientA"
+						}
+					]
+				}
 			},
 			"response": []
 		}
