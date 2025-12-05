@@ -345,12 +345,16 @@ public class LogProcessorClient {
     }
   }
 
+  /**
+   * Checks if the client exists based on the client ID.
+   */
   public boolean clientExists(String clientId) {
     return restClient.get()
         .uri("/logs/exists?clientId=" + clientId)
         .retrieve()
         .body(Boolean.class);
   }
+
   /**
    * Main method to run the client and display plots.
    */
