@@ -148,6 +148,10 @@ For all requests, ensure the x-api-key is included in the header. In Postman (re
 
 [API Testing Guide](./API-Testing.md)
 
+## End-to-End Testing, Concurrency Test and Logging
+
+[End-to-End, Concurrency, and Logging](./End-To-End-Testing.md)
+
 
 ## Style Checking Report
 This project uses the Maven checkstyle tool to check the style of the code and also have style checking reports that
