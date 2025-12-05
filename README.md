@@ -19,7 +19,7 @@ Make sure to run and install the following:
 - Go into the root folder and run the command "mvn compile" to compile the project with Maven
 - Set the env var "API_KEY". Since this is a local server, you decide your own key! Bash example: export API_KEY=localKey
 - You need to include this as a header in all of your requests: key: x-api-key value: localKey
-- You should then run the command "mvn spring-boot:run" to actually run the application
+- You should then run the command "mvn spring-boot:run -Dspring-boot.run.profiles=local" to actually run the service
 - You will then be able to make requests at 127.0.0.1:8080 or localhost:8080
 - If you have issues making POST multipart requests, create a free Postman account here: https://www.postman.com/
 - Download the Desktop Agent for Postman so that you can make requests locally
