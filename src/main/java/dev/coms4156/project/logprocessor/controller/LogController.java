@@ -79,6 +79,7 @@ public class LogController {
   /**
    * NOT a major unit. Checks whether any log entries exist for a given clientId.
    * Supports client program
+   *
    * @param clientId ID input by the client to check existence.
    * @return true if entries exist, false otherwise.
    */
