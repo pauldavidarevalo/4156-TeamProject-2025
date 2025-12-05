@@ -345,6 +345,12 @@ public class LogProcessorClient {
     }
   }
 
+  public boolean clientExists(String clientId) {
+    return restClient.get()
+        .uri("/logs/exists?clientId=" + clientId)
+        .retrieve()
+        .body(Boolean.class);
+  }
   /**
    * Main method to run the client and display plots.
    */
@@ -364,10 +370,20 @@ public class LogProcessorClient {
 
     LogProcessorClient client = new LogProcessorClient(url, apiKey);
 
-    String response = client.resetLogs(clientId);
-    System.out.println(response);
+    System.out.print("Would you like to reset logs for this client before uploading? (yes/no): ");
+    String resetResponse = scanner.nextLine().trim();
+    if ("yes".equalsIgnoreCase(resetResponse)) {
+      String response = client.resetLogs(clientId);
+      System.out.println(response);
+    }
 
     client.uploadLogsLoop(scanner, clientId);
+    if (!client.clientExists(clientId)) {
+      System.out.println("No logs found for clientId: " + clientId
+          + ". Exiting program.");
+      scanner.close();
+      return;
+    }
     scanner.close();
 
     Map<String, Integer> result = client.getStatusCodeCounts(clientId);
