@@ -336,6 +336,7 @@ public class LogProcessorClient {
       }
 
       try {
+        System.out.println("Uploading log file. This may take some time... ");
         String response = uploadLogFile(clientId, logFile);
         System.out.println("Upload response: " + response);
       } catch (Exception e) {
@@ -349,14 +350,19 @@ public class LogProcessorClient {
    */
   public static void main(String[] args) {
     Scanner scanner = new Scanner(System.in);
+    System.out.print("Enter Service URL (default deployed url: "
+        + "https://logprocessor-service-445982800820.us-central1.run.app): ");
+    System.out.println("Or local url: http://localhost:8080");
+    String url = scanner.nextLine().trim();
+    if (url.isEmpty()) {
+      url = "https://logprocessor-service-445982800820.us-central1.run.app";
+    }
     System.out.print("Enter Client ID: ");
     String clientId = scanner.nextLine().trim();
     System.out.print("Enter API Key: ");
     String apiKey = scanner.nextLine().trim();
 
-    LogProcessorClient client = new LogProcessorClient(
-        "https://logprocessor-service-445982800820.us-central1.run.app",
-        apiKey);
+    LogProcessorClient client = new LogProcessorClient(url, apiKey);
 
     String response = client.resetLogs(clientId);
     System.out.println(response);
