@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LogProcessorClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">logprocessor</a> &gt; <a href="index.source.html" class="el_package">dev.coms4156.project.logprocessor.client</a> &gt; <span class="el_source">LogProcessorClient.java</span></div><h1>LogProcessorClient.java</h1><pre class="source lang-java linenums">package dev.coms4156.project.logprocessor.client;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.geom.Rectangle2D;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.TreeMap;
+import javax.swing.JFrame;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.LegendItem;
+import org.jfree.chart.LegendItemCollection;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.CategoryItemRendererState;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.UnknownContentTypeException;
+
+/**
+ * This client uses the timeseries and security endpoints of the LogProcessor
+ * service.
+ * It combines fetching data from these endpoints to generate plots.
+ * This class, especially the plots, were aided by ChatGPT.
+ *
+ */
+public class LogProcessorClient {
+  private final RestClient restClient;
+
+  /**
+   * Constructor for LogProcessorClient.
+   */
+<span class="nc" id="L53">  public LogProcessorClient(String baseUrl, String apiKey) {</span>
+<span class="nc" id="L54">    this.restClient = RestClient.builder()</span>
+<span class="nc" id="L55">        .baseUrl(baseUrl)</span>
+<span class="nc" id="L56">        .defaultHeader(&quot;x-api-key&quot;, apiKey)</span>
+<span class="nc" id="L57">        .build();</span>
+<span class="nc" id="L58">  }</span>
+
+  /**
+   * Resets log entries for a specific clientId.
+   */
+  public String resetLogs(String clientId) {
+<span class="nc" id="L64">    return restClient.post()</span>
+<span class="nc" id="L65">        .uri(&quot;/logs/reset?clientId={clientId}&quot;, clientId)</span>
+<span class="nc" id="L66">        .retrieve()</span>
+<span class="nc" id="L67">        .body(String.class);</span>
+  }
+
+  /**
+   * Uploads a log file to the /logs/upload endpoint.
+   */
+  public String uploadLogFile(String clientId, Path logFilePath) {
+<span class="nc" id="L74">    MultiValueMap&lt;String, Object&gt; body = new LinkedMultiValueMap&lt;&gt;();</span>
+<span class="nc" id="L75">    body.add(&quot;clientId&quot;, clientId);</span>
+<span class="nc" id="L76">    body.add(&quot;file&quot;, new FileSystemResource(logFilePath.toFile()));</span>
+
+<span class="nc" id="L78">    return restClient.post()</span>
+<span class="nc" id="L79">        .uri(&quot;/logs/upload&quot;)</span>
+<span class="nc" id="L80">        .contentType(MediaType.MULTIPART_FORM_DATA)</span>
+<span class="nc" id="L81">        .body(body)</span>
+<span class="nc" id="L82">        .retrieve()</span>
+<span class="nc" id="L83">        .body(String.class);</span>
+  }
+
+  /**
+   * Gets status code counts from the /logs/statusCodeCounts endpoint.
+   */
+  public Map&lt;String, Integer&gt; getStatusCodeCounts(String clientId) {
+<span class="nc" id="L90">    return restClient.get()</span>
+<span class="nc" id="L91">        .uri(&quot;/logs/statusCodeCounts?clientId=&quot; + clientId)</span>
+<span class="nc" id="L92">        .retrieve()</span>
+<span class="nc" id="L93">        .body(new ParameterizedTypeReference&lt;Map&lt;String, Integer&gt;&gt;() {</span>
+        });
+  }
+
+  /**
+   * Gets error counts by hour from the /analytics/timeseries/error-counts
+   * endpoint.
+   */
+  public Map&lt;String, Map&lt;String, Integer&gt;&gt; getErrorCountsByHour(String clientId) {
+<span class="nc" id="L102">    return restClient.get()</span>
+<span class="nc" id="L103">        .uri(&quot;/analytics/timeseries/error-counts/&quot; + clientId)</span>
+<span class="nc" id="L104">        .retrieve()</span>
+<span class="nc" id="L105">        .body(new ParameterizedTypeReference&lt;Map&lt;String, Map&lt;String, Integer&gt;&gt;&gt;() {</span>
+        });
+  }
+
+  /**
+   * Gets request counts by hour from the /analytics/timeseries/requests endpoint.
+   */
+  public Map&lt;String, Integer&gt; getRequestCountsByHour(String clientId) {
+<span class="nc" id="L113">    return restClient.get()</span>
+<span class="nc" id="L114">        .uri(&quot;/analytics/timeseries/requests/&quot; + clientId)</span>
+<span class="nc" id="L115">        .retrieve()</span>
+<span class="nc" id="L116">        .body(new ParameterizedTypeReference&lt;Map&lt;String, Integer&gt;&gt;() {</span>
+        });
+  }
+
+  /**
+   * Gets suspicious IPs from the /security/suspicious-ips endpoint.
+   */
+  public List&lt;Map&lt;String, Object&gt;&gt; getSuspiciousIps(String clientId) {
+    try {
+<span class="nc" id="L125">      return restClient.get()</span>
+<span class="nc" id="L126">          .uri(&quot;/security/suspicious-ips/&quot; + clientId)</span>
+<span class="nc" id="L127">          .retrieve()</span>
+<span class="nc" id="L128">          .body(new ParameterizedTypeReference&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt;() {</span>
+          });
+<span class="nc" id="L130">    } catch (HttpClientErrorException.NotFound e) {</span>
+<span class="nc" id="L131">      System.err.println(&quot;ClientId not found: &quot; + clientId);</span>
+<span class="nc" id="L132">      return List.of();</span>
+<span class="nc" id="L133">    } catch (UnknownContentTypeException e) {</span>
+<span class="nc" id="L134">      System.out.println(&quot;No suspicious IPs found for client: &quot; + clientId);</span>
+<span class="nc" id="L135">      return List.of();</span>
+    }
+  }
+
+  /**
+   * Plots hourly request counts, highlighting hours with suspicious activity and
+   * identified IPs.
+   */
+  public static void plotSuspiciousHours(
+      Map&lt;String, Integer&gt; hourly,
+      List&lt;Map&lt;String, Object&gt;&gt; suspicious) {
+
+    // Map each hour to a set of suspicious IPs
+<span class="nc" id="L148">    Map&lt;String, Set&lt;String&gt;&gt; suspiciousMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">    for (Map&lt;String, Object&gt; entry : suspicious) {</span>
+<span class="nc" id="L150">      String hour = (String) entry.get(&quot;hourWindow&quot;);</span>
+<span class="nc" id="L151">      String ip = (String) entry.get(&quot;ipAddress&quot;);</span>
+<span class="nc" id="L152">      suspiciousMap.computeIfAbsent(hour, k -&gt; new HashSet&lt;&gt;()).add(ip);</span>
+<span class="nc" id="L153">    }</span>
+
+    // Dataset
+<span class="nc" id="L156">    DefaultCategoryDataset dataset = new DefaultCategoryDataset();</span>
+<span class="nc" id="L157">    hourly.forEach((hour, count) -&gt; dataset.addValue(count, &quot;Requests&quot;, hour));</span>
+
+    // Create chart
+<span class="nc" id="L160">    JFreeChart chart = ChartFactory.createBarChart(</span>
+        &quot;Requests per Hour (highlight suspicious hours)&quot;,
+        &quot;Hour&quot;,
+        &quot;Count&quot;,
+        dataset);
+
+    // Customize colors
+<span class="nc" id="L167">    CategoryPlot plot = chart.getCategoryPlot();</span>
+<span class="nc" id="L168">    final BarRenderer renderer = new BarRenderer() {</span>
+      @Override
+      public Paint getItemPaint(int row, int column) {
+<span class="nc" id="L171">        String hour = (String) dataset.getColumnKey(column);</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        return suspiciousMap.containsKey(hour) ? Color.RED : Color.BLUE;</span>
+      }
+
+      @Override
+      public void drawItem(Graphics2D g2, CategoryItemRendererState state,
+          Rectangle2D dataArea, CategoryPlot plot,
+          CategoryAxis domainAxis, ValueAxis rangeAxis,
+          CategoryDataset dataset, int row, int column,
+          int pass) {
+
+<span class="nc" id="L182">        super.drawItem(g2, state, dataArea, plot, domainAxis, </span>
+            rangeAxis, dataset, row, column, pass);
+
+        // Draw IP labels above bars for suspicious hours
+<span class="nc" id="L186">        String hour = (String) dataset.getColumnKey(column);</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (suspiciousMap.containsKey(hour)) {</span>
+<span class="nc" id="L188">          Number value = dataset.getValue(row, column);</span>
+<span class="nc" id="L189">          String label = String.join(&quot;, &quot;, suspiciousMap.get(hour));</span>
+<span class="nc" id="L190">          double x = domainAxis.getCategoryMiddle(column, getColumnCount(), </span>
+<span class="nc" id="L191">              dataArea, plot.getDomainAxisEdge());</span>
+<span class="nc" id="L192">          double y = rangeAxis.valueToJava2D(value.doubleValue(), dataArea, </span>
+<span class="nc" id="L193">              plot.getRangeAxisEdge()) - 5;</span>
+<span class="nc" id="L194">          g2.setFont(g2.getFont().deriveFont(10f));</span>
+<span class="nc" id="L195">          g2.setPaint(Color.BLACK);</span>
+<span class="nc" id="L196">          g2.drawString(label, (float) x - (label.length() * 2), (float) y);</span>
+        }
+<span class="nc" id="L198">      }</span>
+    };
+
+    // Create custom legend
+<span class="nc" id="L202">    LegendItemCollection legendItems = new LegendItemCollection();</span>
+<span class="nc" id="L203">    legendItems.add(new LegendItem(&quot;Healthy activity&quot;, Color.BLUE));</span>
+<span class="nc" id="L204">    legendItems.add(new LegendItem(&quot;Suspicious IP identified&quot;, Color.RED));</span>
+<span class="nc" id="L205">    plot.setFixedLegendItems(legendItems);</span>
+<span class="nc" id="L206">    plot.setRenderer(renderer);</span>
+
+    // Show chart in a window
+<span class="nc" id="L209">    JFrame frame = new JFrame(&quot;Requests Chart with Suspicious IPs&quot;);</span>
+<span class="nc" id="L210">    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);</span>
+<span class="nc" id="L211">    frame.add(new ChartPanel(chart));</span>
+<span class="nc" id="L212">    frame.pack();</span>
+<span class="nc" id="L213">    frame.setLocationRelativeTo(null);</span>
+<span class="nc" id="L214">    frame.setVisible(true);</span>
+<span class="nc" id="L215">  }</span>
+
+  /**
+   * Plots status code counts as a bar chart, coloring 4xx/5xx codes red.
+   */
+  public static void plotStatusCodes(Map&lt;String, Integer&gt; statusCounts) {
+    // Compute health score
+<span class="nc" id="L222">    int total = statusCounts.values().stream().mapToInt(Integer::intValue).sum();</span>
+<span class="nc" id="L223">    int errorCount = statusCounts.entrySet().stream()</span>
+<span class="nc bnc" id="L224" title="All 4 branches missed.">        .filter(e -&gt; e.getKey().startsWith(&quot;4&quot;) || e.getKey().startsWith(&quot;5&quot;))</span>
+<span class="nc" id="L225">        .mapToInt(Map.Entry::getValue)</span>
+<span class="nc" id="L226">        .sum();</span>
+<span class="nc" id="L227">    double healthScore = (double) (total - errorCount) / total * 100.0;</span>
+
+<span class="nc" id="L229">    Map&lt;String, Integer&gt; sorted = new TreeMap&lt;&gt;(statusCounts);</span>
+
+<span class="nc" id="L231">    DefaultCategoryDataset dataset = new DefaultCategoryDataset();</span>
+<span class="nc" id="L232">    sorted.forEach((code, count) -&gt; dataset.addValue(count, &quot;HTTP Status Codes&quot;, code));</span>
+
+<span class="nc" id="L234">    JFreeChart chart = ChartFactory.createBarChart(</span>
+<span class="nc" id="L235">        &quot;HTTP Status Codes Count - Health Score: &quot; + String.format(&quot;%.2f&quot;, healthScore)</span>
+            + &quot;% successful requests&quot;,
+        &quot;Status Code&quot;,
+        &quot;Count&quot;,
+        dataset);
+
+<span class="nc" id="L241">    CategoryPlot plot = chart.getCategoryPlot();</span>
+<span class="nc" id="L242">    BarRenderer renderer = new BarRenderer() {</span>
+      @Override
+      public Paint getItemPaint(int row, int column) {
+<span class="nc" id="L245">        String code = (String) dataset.getColumnKey(column);</span>
+<span class="nc bnc" id="L246" title="All 4 branches missed.">        if (code.startsWith(&quot;4&quot;) || code.startsWith(&quot;5&quot;)) {</span>
+<span class="nc" id="L247">          return Color.RED; // Error codes</span>
+        } else {
+<span class="nc" id="L249">          return Color.BLUE; // Success codes</span>
+        }
+      }
+    };
+<span class="nc" id="L253">    plot.setRenderer(renderer);</span>
+
+    // Create custom legend
+<span class="nc" id="L256">    LegendItemCollection legendItems = new LegendItemCollection();</span>
+<span class="nc" id="L257">    legendItems.add(new LegendItem(&quot;Success (1xx-3xx)&quot;, Color.BLUE));</span>
+<span class="nc" id="L258">    legendItems.add(new LegendItem(&quot;Error (4xx-5xx)&quot;, Color.RED));</span>
+<span class="nc" id="L259">    plot.setFixedLegendItems(legendItems);</span>
+
+    // Show chart
+<span class="nc" id="L262">    JFrame frame = new JFrame(&quot;Status Codes&quot;);</span>
+<span class="nc" id="L263">    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);</span>
+<span class="nc" id="L264">    frame.add(new ChartPanel(chart));</span>
+<span class="nc" id="L265">    frame.pack();</span>
+<span class="nc" id="L266">    frame.setLocationRelativeTo(null);</span>
+<span class="nc" id="L267">    frame.setVisible(true);</span>
+<span class="nc" id="L268">  }</span>
+
+  /**
+   * Plots time series of requests and errors.
+   */
+  public void plotTimeSeriesWithErrors(String clientId, Map&lt;String, 
+      Map&lt;String, Integer&gt;&gt; errorsByHour,
+      Map&lt;String, Integer&gt; requestsByHour) {
+    // Compute total errors per hour (sum of 4xx + 5xx)
+<span class="nc" id="L277">    Map&lt;String, Integer&gt; totalErrorsByHour = new TreeMap&lt;&gt;();</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">    for (String hour : errorsByHour.keySet()) {</span>
+<span class="nc" id="L279">      Map&lt;String, Integer&gt; hourErrors = errorsByHour.get(hour);</span>
+<span class="nc" id="L280">      int sum = hourErrors.getOrDefault(&quot;4xx&quot;, 0) + hourErrors.getOrDefault(&quot;5xx&quot;, 0);</span>
+<span class="nc" id="L281">      totalErrorsByHour.put(hour, sum);</span>
+<span class="nc" id="L282">    }</span>
+
+    // Create dataset for plotting
+<span class="nc" id="L285">    DefaultCategoryDataset dataset = new DefaultCategoryDataset();</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">    for (String hour : requestsByHour.keySet()) {</span>
+<span class="nc" id="L287">      int reqCount = requestsByHour.get(hour);</span>
+<span class="nc" id="L288">      int errCount = totalErrorsByHour.getOrDefault(hour, 0);</span>
+
+<span class="nc" id="L290">      dataset.addValue(reqCount, &quot;Total Requests&quot;, hour);</span>
+<span class="nc" id="L291">      dataset.addValue(errCount, &quot;Total Errors&quot;, hour);</span>
+<span class="nc" id="L292">    }</span>
+
+    // Create chart
+<span class="nc" id="L295">    JFreeChart chart = ChartFactory.createLineChart(</span>
+        &quot;Hourly Requests vs Errors&quot;,
+        &quot;Hour&quot;,
+        &quot;Count&quot;,
+        dataset);
+
+    // Customize line colors
+<span class="nc" id="L302">    final CategoryPlot plot = chart.getCategoryPlot();</span>
+<span class="nc" id="L303">    LineAndShapeRenderer renderer = new LineAndShapeRenderer();</span>
+<span class="nc" id="L304">    renderer.setSeriesPaint(0, Color.BLUE); // Requests</span>
+<span class="nc" id="L305">    renderer.setSeriesPaint(1, Color.RED); // Errors</span>
+<span class="nc" id="L306">    renderer.setSeriesStroke(0, new BasicStroke(2.0f));</span>
+<span class="nc" id="L307">    renderer.setSeriesStroke(1, new BasicStroke(2.0f));</span>
+<span class="nc" id="L308">    plot.setRenderer(renderer);</span>
+
+    // Show chart
+<span class="nc" id="L311">    JFrame frame = new JFrame(&quot;Time Series Analysis&quot;);</span>
+<span class="nc" id="L312">    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);</span>
+<span class="nc" id="L313">    frame.add(new ChartPanel(chart));</span>
+<span class="nc" id="L314">    frame.pack();</span>
+<span class="nc" id="L315">    frame.setLocationRelativeTo(null);</span>
+<span class="nc" id="L316">    frame.setVisible(true);</span>
+<span class="nc" id="L317">  }</span>
+
+  /**
+   * Loop to upload log files based on user input.
+   */
+  public void uploadLogsLoop(Scanner scanner, String clientId) {
+    while (true) {
+<span class="nc" id="L324">      System.out.print(&quot;Enter path to log file (or type 'quit' to begin processing): &quot;);</span>
+<span class="nc" id="L325">      String input = scanner.nextLine().trim();</span>
+
+<span class="nc bnc" id="L327" title="All 4 branches missed.">      if (&quot;quit&quot;.equalsIgnoreCase(input) || input.isEmpty()) {</span>
+<span class="nc" id="L328">        System.out.println(&quot;Exiting log upload loop.&quot;);</span>
+<span class="nc" id="L329">        break;</span>
+      }
+
+<span class="nc" id="L332">      Path logFile = Path.of(input);</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">      if (!Files.exists(logFile)) {</span>
+<span class="nc" id="L334">        System.out.println(&quot;File does not exist. Try again.&quot;);</span>
+<span class="nc" id="L335">        continue;</span>
+      }
+
+      try {
+<span class="nc" id="L339">        System.out.println(&quot;Uploading log file. This may take some time... &quot;);</span>
+<span class="nc" id="L340">        String response = uploadLogFile(clientId, logFile);</span>
+<span class="nc" id="L341">        System.out.println(&quot;Upload response: &quot; + response);</span>
+<span class="nc" id="L342">      } catch (Exception e) {</span>
+<span class="nc" id="L343">        System.out.println(&quot;Failed to upload log file: &quot; + e.getMessage());</span>
+<span class="nc" id="L344">      }</span>
+<span class="nc" id="L345">    }</span>
+<span class="nc" id="L346">  }</span>
+
+  public boolean clientExists(String clientId) {
+<span class="nc" id="L349">    return restClient.get()</span>
+<span class="nc" id="L350">        .uri(&quot;/logs/exists?clientId=&quot; + clientId)</span>
+<span class="nc" id="L351">        .retrieve()</span>
+<span class="nc" id="L352">        .body(Boolean.class);</span>
+  }
+  /**
+   * Main method to run the client and display plots.
+   */
+  public static void main(String[] args) {
+<span class="nc" id="L358">    try (Scanner scanner = new Scanner(System.in)) {</span>
+<span class="nc" id="L359">      System.out.print(&quot;Enter Service URL (default deployed url: &quot;</span>
+          + &quot;https://logprocessor-service-445982800820.us-central1.run.app): &quot;);
+<span class="nc" id="L361">      System.out.println(&quot;Or local url: http://localhost:8080&quot;);</span>
+<span class="nc" id="L362">      String url = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">      if (url.isEmpty()) {</span>
+<span class="nc" id="L364">        url = &quot;https://logprocessor-service-445982800820.us-central1.run.app&quot;;</span>
+      }
+<span class="nc" id="L366">      System.out.print(&quot;Enter Client ID: &quot;);</span>
+<span class="nc" id="L367">      String clientId = scanner.nextLine().trim();</span>
+<span class="nc" id="L368">      System.out.print(&quot;Enter API Key: &quot;);</span>
+<span class="nc" id="L369">      String apiKey = scanner.nextLine().trim();</span>
+
+<span class="nc" id="L371">      LogProcessorClient client = new LogProcessorClient(url, apiKey);</span>
+
+<span class="nc" id="L373">      System.out.print(&quot;Would you like to reset logs for this client before uploading? (yes/no): &quot;);</span>
+<span class="nc" id="L374">      String resetResponse = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">      if (&quot;yes&quot;.equalsIgnoreCase(resetResponse)) {</span>
+<span class="nc" id="L376">        String response = client.resetLogs(clientId);</span>
+<span class="nc" id="L377">        System.out.println(response);</span>
+      }
+
+<span class="nc" id="L380">      client.uploadLogsLoop(scanner, clientId);</span>
+<span class="nc bnc" id="L381" title="All 2 branches missed.">      if (!client.clientExists(clientId)) {</span>
+<span class="nc" id="L382">        System.out.println(&quot;No logs found for clientId: &quot; + clientId</span>
+            + &quot;. Exiting program.&quot;);
+<span class="nc" id="L384">        scanner.close();</span>
+<span class="nc" id="L385">        return;</span>
+      }
+<span class="nc" id="L387">      scanner.close();</span>
+
+<span class="nc" id="L389">      Map&lt;String, Integer&gt; result = client.getStatusCodeCounts(clientId);</span>
+<span class="nc" id="L390">      plotStatusCodes(result);</span>
+
+<span class="nc" id="L392">      Map&lt;String, Integer&gt; hourly = client.getRequestCountsByHour(clientId);</span>
+<span class="nc" id="L393">      List&lt;Map&lt;String, Object&gt;&gt; suspicious = client.getSuspiciousIps(clientId);</span>
+<span class="nc" id="L394">      System.out.println(&quot;Suspicious IPs identified:&quot;);</span>
+<span class="nc bnc" id="L395" title="All 2 branches missed.">      if (suspicious.isEmpty()) {</span>
+<span class="nc" id="L396">        System.out.println(&quot;No suspicious IPs identified:&quot;);</span>
+      } else {
+<span class="nc" id="L398">        suspicious.forEach(entry -&gt; {</span>
+<span class="nc" id="L399">          System.out.println(</span>
+<span class="nc" id="L400">              entry.get(&quot;hourWindow&quot;) + &quot; | &quot;</span>
+<span class="nc" id="L401">                  + entry.get(&quot;ipAddress&quot;) + &quot; | &quot;</span>
+<span class="nc" id="L402">                  + &quot;total suspicious requests: &quot; + entry.get(&quot;errorCount&quot;));</span>
+<span class="nc" id="L403">        });</span>
+      }
+<span class="nc" id="L405">      plotSuspiciousHours(hourly, suspicious);</span>
+
+<span class="nc" id="L407">      Map&lt;String, Map&lt;String, Integer&gt;&gt; errorsByHour = client.getErrorCountsByHour(clientId);</span>
+<span class="nc" id="L408">      client.plotTimeSeriesWithErrors(clientId, errorsByHour, hourly);</span>
+<span class="nc" id="L409">    }</span>
+<span class="nc" id="L410">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

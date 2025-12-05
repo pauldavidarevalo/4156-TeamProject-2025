@@ -1,0 +1,1 @@
+src\main\java\dev\coms4156\project\logprocessor\LogProcessorApplication.java:10:	UseUtilityClass:	All methods are static. Consider adding a private no-args constructor to prevent instantiation.

@@ -1,0 +1,25 @@
+src\main\java\dev\coms4156\project\logprocessor\LogProcessorApplication.java:7:	UseUtilityClass:	All methods are static. Consider adding a private no-args constructor to prevent instantiation.
+src\main\java\dev\coms4156\project\logprocessor\controller\AnalyticsController.java:9:	UnnecessaryImport:	Unused import 'org.springframework.web.bind.annotation.*'
+src\main\java\dev\coms4156\project\logprocessor\controller\LogController.java:6:	UnnecessaryImport:	Unused import 'org.springframework.web.bind.annotation.*'
+src\main\java\dev\coms4156\project\logprocessor\model\LogEntry.java:3:	UnnecessaryImport:	Unused import 'jakarta.persistence.*'
+src\main\java\dev\coms4156\project\logprocessor\model\LogEntry.java:30:	UncommentedEmptyConstructor:	Document empty constructor
+src\main\java\dev\coms4156\project\logprocessor\service\LogService.java:11:	UnnecessaryImport:	Unused import 'java.time.format.DateTimeFormatter'
+src\main\java\dev\coms4156\project\logprocessor\service\LogService.java:50:	UnusedLocalVariable:	Avoid unused local variables such as 'time'.
+src\main\java\dev\coms4156\project\logprocessor\service\LogService.java:54:	LiteralsFirstInComparisons:	Position literals first in String comparisons
+src\test\java\dev\coms4156\project\logprocessor\controller\AnalyticsControllerTest.java:46:	MethodNamingConventions:	The JUnit 5 test method name 'testGetTopEndpoints_ReturnsDataSuccessfully' doesn't match '[a-z][a-zA-Z0-9]*'
+src\test\java\dev\coms4156\project\logprocessor\controller\AnalyticsControllerTest.java:62:	MethodNamingConventions:	The JUnit 5 test method name 'testGetTopEndpoints_EmptyList' doesn't match '[a-z][a-zA-Z0-9]*'
+src\test\java\dev\coms4156\project\logprocessor\controller\LogControllerTest.java:47:	MethodNamingConventions:	The JUnit 5 test method name 'testUploadLog_Success' doesn't match '[a-z][a-zA-Z0-9]*'
+src\test\java\dev\coms4156\project\logprocessor\controller\LogControllerTest.java:65:	MethodNamingConventions:	The JUnit 5 test method name 'testUploadLog_Exception' doesn't match '[a-z][a-zA-Z0-9]*'
+src\test\java\dev\coms4156\project\logprocessor\controller\LogControllerTest.java:84:	MethodNamingConventions:	The JUnit 5 test method name 'testGetStatusCodeCounts_Found' doesn't match '[a-z][a-zA-Z0-9]*'
+src\test\java\dev\coms4156\project\logprocessor\controller\LogControllerTest.java:104:	MethodNamingConventions:	The JUnit 5 test method name 'testGetStatusCodeCounts_NotFound' doesn't match '[a-z][a-zA-Z0-9]*'
+src\test\java\dev\coms4156\project\logprocessor\repository\LogEntryRepositoryTest.java:23:	SingularField:	Perhaps 'e1' could be replaced by a local variable.
+src\test\java\dev\coms4156\project\logprocessor\repository\LogEntryRepositoryTest.java:23:	OneDeclarationPerLine:	Use one line for each declaration, it enhances code readability.
+src\test\java\dev\coms4156\project\logprocessor\repository\LogEntryRepositoryTest.java:23:	SingularField:	Perhaps 'e2' could be replaced by a local variable.
+src\test\java\dev\coms4156\project\logprocessor\repository\LogEntryRepositoryTest.java:23:	SingularField:	Perhaps 'e3' could be replaced by a local variable.
+src\test\java\dev\coms4156\project\logprocessor\repository\LogEntryRepositoryTest.java:23:	SingularField:	Perhaps 'e4' could be replaced by a local variable.
+src\test\java\dev\coms4156\project\logprocessor\repository\LogEntryRepositoryTest.java:30:	AvoidUsingHardCodedIP:	Do not hard code the IP address ${variableName}
+src\test\java\dev\coms4156\project\logprocessor\repository\LogEntryRepositoryTest.java:31:	AvoidUsingHardCodedIP:	Do not hard code the IP address ${variableName}
+src\test\java\dev\coms4156\project\logprocessor\repository\LogEntryRepositoryTest.java:32:	AvoidUsingHardCodedIP:	Do not hard code the IP address ${variableName}
+src\test\java\dev\coms4156\project\logprocessor\repository\LogEntryRepositoryTest.java:33:	AvoidUsingHardCodedIP:	Do not hard code the IP address ${variableName}
+src\test\java\dev\coms4156\project\logprocessor\repository\LogEntryRepositoryTest.java:45:	UselessParentheses:	Useless parentheses around `(Long) results.get(0)[1]`.
+src\test\java\dev\coms4156\project\logprocessor\service\LogServiceTest.java:82:	AvoidUsingHardCodedIP:	Do not hard code the IP address ${variableName}
