@@ -52,10 +52,19 @@ The last plot combines responses from timeseries/requests and timeseries/error-c
 ### Running the Client
 Before running the client, you must decide whether to run the service locally or use the service deployed on the cloud. To run the service locally, see [Building and Running a Local Instance](#building-and-running-a-local-instance).
 Once the service is running, you can open LogProcessorClient.java in your IDE and select Run. The client program has also been packaged into a JAR, which can be run with mvn spring-boot:run -Dstart-class=dev.coms4156.client.LogProcessorClient. You will be asked to enter a Service URL. The default is the location of the deployed service: https://logprocessor-service-445982800820.us-central1.run.app. If running locally, type http://localhost:8080.
+
 It will then prompt for a client ID. Make this whatever you'd like to distinguish between clients. It will then prompt for an API key. Use your real API key or your local one depending on where the service is running. It will then prompt if you'd like to remove any previously uploaded log files with that client. Lastly, it will continuously prompt you for the path to log files to upload. Upload none or as many as you'd like, then type 'quit'. If no log files for your clientId are found in the database after this stage, it will exit. Otherwise, it will finally run the body of the client program to generate plots by combining and computing new analytics from the requests automatically made to the service. If any suspicious ip addresses have been found, it will output them to terminal and display them in the "Requests per Hour (highlight suspicious hours)" plot above any suspicious hour windows.
 You may run the service again and enter the same clientId to analyze the same logs, add more logs, or start from scratch.
 ### Multiple instances of the client
 Multiple instances of the client can use the same service. Open two separate terminals for each client. In each, set the API_KEY env var differently. Then choose a different clientId when running the client program. This will keep data between clients separated and allow for multiple clients to use the service simulatenously.
+## How a third party could make a client program
+The service exposes a REST API that can be called from any programming language or environment capable of making HTTP requests. Below is a checklist of prerequistes:
+- Determine whether you are connecting to a local instance (http://localhost:8080) or a deployed instance (e.g., https://logprocessor-service-445982800820.us-central1.run.app)
+- The client must include the x-api-key header in every request.
+- clientId: the client program should have some way of separating clientId's and ensuring each instances of the client program uses its own clientId value for all requests.
+If you choose Java, common libraries are RestTemplate (used in our integration test LogProcessorIntegrationTest.java), RestClient (used in our client program LogProcessorClient.java). Feel free to consult these files for example requests.
+
+Any client of this service will likely be structured to make /upload requests and the call all other endpoints for analytics and security features. Consult the following API documentation for details regarding each endpoint.
 
 ## Endpoints
 This summarizes the endpoints from LogController, AnalyticsController, and SecurityController classes, 
