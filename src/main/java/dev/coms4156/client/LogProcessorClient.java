@@ -366,8 +366,10 @@ public class LogProcessorClient {
 
     Map<String, Integer> result = client.getStatusCodeCounts(clientId);
     plotStatusCodes(result);
+    System.out.println("StatusCodeCounts:" + result);
 
     Map<String, Integer> hourly = client.getRequestCountsByHour(clientId);
+    System.out.println("RequestCountsByHour:" + hourly);
     List<Map<String, Object>> suspicious = client.getSuspiciousIps(clientId);
     System.out.println("Suspicious IPs identified:");
     if (suspicious.isEmpty()) {
@@ -383,6 +385,7 @@ public class LogProcessorClient {
     plotSuspiciousHours(hourly, suspicious);
 
     Map<String, Map<String, Integer>> errorsByHour = client.getErrorCountsByHour(clientId);
+    System.out.println("ErrorCountsByHour:" + errorsByHour);
     client.plotTimeSeriesWithErrors(clientId, errorsByHour, hourly);
   }
 }
