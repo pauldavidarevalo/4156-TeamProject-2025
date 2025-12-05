@@ -126,6 +126,24 @@ For all requests, ensure the x-api-key is included in the header. In Postman (re
 - Upon Failure: N/A (There are no exceptions thrown and no error responses are generated)
 - Endpoint Link: http://127.0.0.1:8080/security/suspicious-ips
 
+### POST /logs/reset
+- Expected Input Parameters: clientId (String, query parameter) – the client ID whose logs should be reset.
+- Expected Output: A String message confirming the reset or indicating that no logs existed for the client.
+- Deletes all log entries in the database for the given clientId. If no entries exist, it simply reports that nothing was deleted. This endpoint is mainly used by client programs to start fresh or remove old logs.
+- Upon Success: HTTP 200 Status Code with either:
+- - "Logs reset for clientId = <clientId>" if logs were deleted
+- - "No log entries to reset for clientId = <clientId>" if no logs existed
+- Upon Failure: N/A – the endpoint always returns 200 OK even if no logs exist
+- Endpoint Link: http://127.0.0.1:8080/logs/reset?clientId={clientId}
+
+### GET /logs/exists
+- Expected Input Parameters: clientId (String, query parameter) – the client ID to check for log entries.
+- Expected Output: true if at least one log entry exists for the client. false if no log entries exist
+- Checks whether any log entries exist for the given clientId. Primarily used by client programs to verify if logs have already been uploaded.
+- Upon Success: HTTP 200 Status Code with true or false in the response body
+- Upon Failure: N/A – the endpoint always returns 200 OK with a boolean result
+- Endpoint Link: http://127.0.0.1:8080/logs/exists?clientId={clientId}
+
 ## API Tests
 
 [API Testing Guide](./API-Testing.md)
