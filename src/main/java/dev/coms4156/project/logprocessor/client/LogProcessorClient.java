@@ -389,16 +389,27 @@ public class LogProcessorClient {
         return;
       }
       scanner.close();
+      System.out.println();
 
-      Map<String, Integer> result = client.getStatusCodeCounts(clientId);
-      plotStatusCodes(result);
+      Map<String, Integer> statusCodeCountsResult = client.getStatusCodeCounts(clientId);
+      System.out.println("HTTP Status Code Counts:");
+      statusCodeCountsResult.entrySet().stream()
+          .sorted(Map.Entry.comparingByKey())
+          .forEach(e -> System.out.println(e.getKey() + ": " + e.getValue()));
+
+      System.out.println();
+      plotStatusCodes(statusCodeCountsResult);
 
       Map<String, Integer> hourly = client.getRequestCountsByHour(clientId);
+      System.out.println("Hourly Request Counts:");
+      hourly.forEach((hour, count) -> System.out.println(hour + ": " + count));
+      System.out.println();
+
       List<Map<String, Object>> suspicious = client.getSuspiciousIps(clientId);
-      System.out.println("Suspicious IPs identified:");
       if (suspicious.isEmpty()) {
-        System.out.println("No suspicious IPs identified:");
+        System.out.println("No suspicious IPs identified.");
       } else {
+        System.out.println("Suspicious IPs identified:");
         suspicious.forEach(entry -> {
           System.out.println(
               entry.get("hourWindow") + " | "
