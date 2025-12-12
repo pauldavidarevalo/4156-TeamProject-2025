@@ -16,26 +16,26 @@ Make sure to run and install the following:
     - Already included in the `application.properties`. Database is created upon running service.
 - Download the PMD Source Code Analyzer: https://pmd.github.io/
 - Clone the repo using the command "git clone https://github.com/pauldavidarevalo/4156-TeamProject-2025.git"
-- Go into the root folder and run the command "mvn compile" to compile the project with Maven
+- Go into the root folder and run the command `mvn package` to compile the project with Maven
 - Set the env var "API_KEY". Since this is a local server, you decide your own key! Bash example: export API_KEY=localKey
 - You need to include this as a header in all of your requests: key: x-api-key value: localKey
-- You should then run the command "mvn spring-boot:run -Dspring-boot.run.profiles=local" to actually run the service
+- You should then run the command `mvn spring-boot:run -Dspring-boot.run.profiles=local` to actually run the service
 - You will then be able to make requests at 127.0.0.1:8080 or localhost:8080
 - If you have issues making POST multipart requests, create a free Postman account here: https://www.postman.com/
 - Download the Desktop Agent for Postman so that you can make requests locally
 - Create a new workspace so that you can invoke different requests
 - In order to populate the database, call /logs/upload with the sampleApacheSimple.log and suspiciousIps.log, both found in the sampleLogs folder
 - You can then paste the URL of the endpoint you are invoking in the search bar and select the type of request made
-- If you wish to run the style checker, you can run the command "mvn checkstyle:check" to see the code style results on the command terminal or the command "mvn checkstyle:checkstyle" if you wish to generate the report.
+- If you wish to run the style checker, you can run the command `mvn checkstyle:check` to see the code style results on the command terminal or the command `mvn checkstyle:checkstyle` if you wish to generate the report.
 - Note: This project was run on a Windows computer, so the instructions might be a little different for Mac computers.
 
 ## Running Tests
 The unit tests are located in the "src/test/java/dev/coms4156/project/logprocessor" directory and
 cover many different branches for the LogEntry model, LogService, LogEntryRepository, controller classes. You should first
-compile the project by going into the root directory and running the command "mvn compile" here. You
-should then run the command "mvn clean test" to run the updated suite of tests. After running these tests, you should
+compile the project by going into the root directory and running the command `mvn package` here. You
+should then run the command `mvn clean test` to run the updated suite of tests. After running these tests, you should
 check that all tests are successfully working (no assertion errors, missing imports, etc.). You can then look at the new
-JaCoCo report by running the command "mvn jacoco:report" and going to the "src/target/site/jacoco" folder. You can then
+JaCoCo report by running the command `mvn jacoco:report` and going to the "src/target/site/jacoco" folder. You can then
 look at the overall branch coverage by clicking index.html and opening it in a browser (Google Chrome works best).
 
 ## Testing endpoints from first iteration
@@ -49,7 +49,7 @@ This plot combines the response from the timeseries/requests and security/suspic
 The last plot combines responses from timeseries/requests and timeseries/error-counts to generate two line plots of the number of requests within an hour in blue and the number of error requests (4xx or 5xx) within an hour. This plot uses both of the timeseries endpoints to help illustrate trends in the types of requests (successful vs error) in the logs.
 ### Running the Client
 The client program is located in src/main/java/dev/coms4155/client/LogProcessorClient.java. Before running the client, you must decide whether to run the service locally or use the service deployed on the cloud. To run the service locally, see [Building and Running a Local Instance](#building-and-running-a-local-instance).
-Once the service is running, you can open LogProcessorClient.java in your IDE and select Run. The client program has also been packaged into a JAR, which can be run with mvn spring-boot:run -Dstart-class=dev.coms4156.project.logprocessor.client.LogProcessorClient. You will be asked to enter a Service URL. The default is the location of the deployed service: https://logprocessor-service-445982800820.us-central1.run.app. If running locally, type http://localhost:8080.
+Once the service is running, you can open LogProcessorClient.java in your IDE and select Run. The client program has also been packaged into a JAR, which can be run with `mvn spring-boot:run -Dstart-class=dev.coms4156.project.logprocessor.client.LogProcessorClient`. You will be asked to enter a Service URL. The default is the location of the deployed service: https://logprocessor-service-445982800820.us-central1.run.app. If running locally, type http://localhost:8080.
 
 It will then prompt for a client ID. Make this whatever you'd like to distinguish between clients. It will then prompt for an API key. Use your real API key or your local one depending on where the service is running. It will then prompt if you'd like to remove any previously uploaded log files with that client. Lastly, it will continuously prompt you for the path to log files to upload. Upload none or as many as you'd like, then type 'quit'. If no log files for your clientId are found in the database after this stage, it will exit. Otherwise, it will finally run the body of the client program to generate plots by combining and computing new analytics from the requests automatically made to the service. If any suspicious ip addresses have been found, it will output them to terminal and display them in the "Requests per Hour (highlight suspicious hours)" plot above any suspicious hour windows.
 You may run the service again and enter the same clientId to analyze the same logs, add more logs, or start from scratch.
@@ -67,8 +67,8 @@ Any client of this service will likely be structured to make /upload requests an
 ## Endpoints
 This summarizes the endpoints from LogController, AnalyticsController, and SecurityController classes, 
 covering the inputs, outputs, and overall functionality for their methods. Any request that does not follow the correct 
-endpoint structure will cause an HTTP 400 Bad Request response. If the service is not running (the commands "mvn compile" 
-and "mvn spring-boot:run" are not used), there will be generic error message saying "This site can't be reached 127.0.0.1 
+endpoint structure will cause an HTTP 400 Bad Request response. If the service is not running (the commands `mvn package` 
+and `mvn spring-boot:run` are not used), there will be generic error message saying "This site can't be reached 127.0.0.1 
 refused to connect." on the page. As a side note, there is an option to check the "Pretty-print" box so that the JSON response looks well-formatted.
 
 For all requests, ensure the x-api-key is included in the header. In Postman (recommended): Go to the Headers tab, add a new header, Key="x-api-key", Value=<copy your real API if deployed, or your local>
@@ -155,8 +155,8 @@ For all requests, ensure the x-api-key is included in the header. In Postman (re
 
 ## Style Checking Report
 This project uses the Maven checkstyle tool to check the style of the code and also have style checking reports that
-contain audits of the code style. The command needed to invoke this checkstyle tool is "mvn checkstyle:check" if you
-want to see this information in the terminal. If you want to see a report, the command "mvn checkstyle:checkstyle"
+contain audits of the code style. The command needed to invoke this checkstyle tool is `mvn checkstyle:check` if you
+want to see this information in the terminal. If you want to see a report, the command `mvn checkstyle:checkstyle`
 should be used.
 
 <img src="/images/Maven_Checkstyle_Command.png" alt="alt text" />
