@@ -5,6 +5,9 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -14,6 +17,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.JFrame;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -47,6 +52,8 @@ import org.springframework.web.client.UnknownContentTypeException;
 public class LogProcessorClient {
   private final RestClient restClient;
 
+  private static final Pattern IP_PATTERN = Pattern.compile("^(\\S+)");
+
   /**
    * Constructor for LogProcessorClient.
    */
@@ -69,8 +76,10 @@ public class LogProcessorClient {
 
   /**
    * Uploads a log file to the /logs/upload endpoint.
+   * Performs local bot detection before uploading the file.
    */
-  public String uploadLogFile(String clientId, Path logFilePath) {
+  public String uploadLogFile(String clientId, Path logFilePath, int botThreshold) {
+    performLocalBotDetection(clientId, logFilePath, botThreshold);
     MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
     body.add("clientId", clientId);
     body.add("file", new FileSystemResource(logFilePath.toFile()));
@@ -81,6 +90,45 @@ public class LogProcessorClient {
         .body(body)
         .retrieve()
         .body(String.class);
+  }
+
+  /**
+   * Performs local bot detection by analyzing the log file before upload
+   * by counting the number of requests made to each IP address.
+   * If any IP exceeds the user-defined threshold, the potential bot is flagged.
+   */
+  private void performLocalBotDetection(String clientId, Path logFilePath, int threshold) {
+    Map<String, Integer> ipRequestCount = new HashMap<>();
+
+    try (BufferedReader reader = new BufferedReader(
+            new InputStreamReader(Files.newInputStream(logFilePath)))) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        Matcher matcher = IP_PATTERN.matcher(line.trim());
+        if (matcher.find()) {
+          String ip = matcher.group(1);
+          ipRequestCount.put(ip, ipRequestCount.getOrDefault(ip, 0) + 1);
+        }
+      }
+    } catch (IOException e) {
+      System.out.println("Warning: Could not read log file for bot detection: " + e.getMessage());
+      return;
+    }
+
+    System.out.println("\n Local Bot Detection Results for Client: " + clientId);
+    System.out.println("Threshold: " + threshold + " requests per IP");
+    boolean potentialBotFound = false;
+    for (Map.Entry<String, Integer> entry : ipRequestCount.entrySet()) {
+      if (entry.getValue() > threshold) {
+        System.out.printf("[POTENTIAL BOT] IP %s made %d requests (exceeds threshold of %d)%n",
+            entry.getKey(), entry.getValue(), threshold);
+        potentialBotFound = true;
+      }
+    }
+
+    if (!potentialBotFound) {
+      System.out.println("No potential bots detected");
+    }
   }
 
   /**
@@ -179,7 +227,7 @@ public class LogProcessorClient {
           CategoryDataset dataset, int row, int column,
           int pass) {
 
-        super.drawItem(g2, state, dataArea, plot, domainAxis, 
+        super.drawItem(g2, state, dataArea, plot, domainAxis,
             rangeAxis, dataset, row, column, pass);
 
         // Draw IP labels above bars for suspicious hours
@@ -187,9 +235,9 @@ public class LogProcessorClient {
         if (suspiciousMap.containsKey(hour)) {
           Number value = dataset.getValue(row, column);
           String label = String.join(", ", suspiciousMap.get(hour));
-          double x = domainAxis.getCategoryMiddle(column, getColumnCount(), 
+          double x = domainAxis.getCategoryMiddle(column, getColumnCount(),
               dataArea, plot.getDomainAxisEdge());
-          double y = rangeAxis.valueToJava2D(value.doubleValue(), dataArea, 
+          double y = rangeAxis.valueToJava2D(value.doubleValue(), dataArea,
               plot.getRangeAxisEdge()) - 5;
           g2.setFont(g2.getFont().deriveFont(10f));
           g2.setPaint(Color.BLACK);
@@ -270,7 +318,7 @@ public class LogProcessorClient {
   /**
    * Plots time series of requests and errors.
    */
-  public void plotTimeSeriesWithErrors(String clientId, Map<String, 
+  public void plotTimeSeriesWithErrors(String clientId, Map<String,
       Map<String, Integer>> errorsByHour,
       Map<String, Integer> requestsByHour) {
     // Compute total errors per hour (sum of 4xx + 5xx)
@@ -319,7 +367,7 @@ public class LogProcessorClient {
   /**
    * Loop to upload log files based on user input.
    */
-  public void uploadLogsLoop(Scanner scanner, String clientId) {
+  public void uploadLogsLoop(Scanner scanner, String clientId, int botThreshold) {
     while (true) {
       System.out.print("Enter path to log file (or type 'quit' to begin processing): ");
       String input = scanner.nextLine().trim();
@@ -337,7 +385,7 @@ public class LogProcessorClient {
 
       try {
         System.out.println("Uploading log file. This may take some time... ");
-        String response = uploadLogFile(clientId, logFile);
+        String response = uploadLogFile(clientId, logFile, botThreshold);
         System.out.println("Upload response: " + response);
       } catch (Exception e) {
         System.out.println("Failed to upload log file: " + e.getMessage());
@@ -381,7 +429,11 @@ public class LogProcessorClient {
         System.out.println(response);
       }
 
-      client.uploadLogsLoop(scanner, clientId);
+      System.out.print("Enter bot detection threshold (requests per IP): ");
+      String thresholdInput = scanner.nextLine().trim();
+      int botThreshold = thresholdInput.isEmpty() ? 100 : Integer.parseInt(thresholdInput);
+
+      client.uploadLogsLoop(scanner, clientId, botThreshold);
       if (!client.clientExists(clientId)) {
         System.out.println("No logs found for clientId: " + clientId
             + ". Exiting program.");
