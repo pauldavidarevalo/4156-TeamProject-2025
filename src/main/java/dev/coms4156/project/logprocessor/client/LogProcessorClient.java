@@ -492,12 +492,12 @@ public class LogProcessorClient {
       System.out.println();
       System.out.println("Endpoint Health Analysis:");
       System.out.print("Enter minimum error rate threshold to filter unhealthy endpoints (.3 - 1.0, default 0.3): ");
-      String thresholdInput = scanner.nextLine().trim();
+      String healthThreshold = scanner.nextLine().trim();
       List<Map<String, Object>> healthData = client.getClientHealth(clientId);
       if (healthData.isEmpty()) {
         System.out.println("No unhealthy endpoints identified.");
       } else {
-        double threshold = thresholdInput.isEmpty() ? 0.3 : Double.parseDouble(thresholdInput);
+        double threshold = healthThreshold.isEmpty() ? 0.3 : Double.parseDouble(healthThreshold);
 
         List<Map<String, Object>> filteredHealth = healthData.stream()
             .filter(entry -> ((Number) entry.get("errorRate")).doubleValue() > threshold)
