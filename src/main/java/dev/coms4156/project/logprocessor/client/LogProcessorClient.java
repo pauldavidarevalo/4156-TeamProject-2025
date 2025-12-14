@@ -137,6 +137,25 @@ public class LogProcessorClient {
   }
 
   /**
+   * Gets client health data from the /analytics/health endpoint.
+   */
+  public List<Map<String, Object>> getClientHealth(String clientId) {
+    try {
+      return restClient.get()
+          .uri("/analytics/health/" + clientId)
+          .retrieve()
+          .body(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+          });
+    } catch (HttpClientErrorException.NotFound e) {
+      System.err.println("ClientId not found: " + clientId);
+      return List.of();
+    } catch (Exception e) {
+      System.out.println("Error fetching health data for client: " + clientId);
+      return List.of();
+    }
+  }
+
+  /**
    * Plots hourly request counts, highlighting hours with suspicious activity and
    * identified IPs.
    */
@@ -388,7 +407,6 @@ public class LogProcessorClient {
         scanner.close();
         return;
       }
-      scanner.close();
       System.out.println();
 
       Map<String, Integer> statusCodeCountsResult = client.getStatusCodeCounts(clientId);
@@ -418,6 +436,40 @@ public class LogProcessorClient {
         });
       }
       plotSuspiciousHours(hourly, suspicious);
+
+      System.out.println();
+      System.out.println("Endpoint Health Analysis:");
+      System.out.print("Enter minimum error rate threshold to filter unhealthy endpoints (.3 - 1.0, default 0.3): ");
+      String thresholdInput = scanner.nextLine().trim();
+      List<Map<String, Object>> healthData = client.getClientHealth(clientId);
+      if (healthData.isEmpty()) {
+        System.out.println("No unhealthy endpoints identified.");
+      } else {
+        double threshold = thresholdInput.isEmpty() ? 0.3 : Double.parseDouble(thresholdInput);
+
+        List<Map<String, Object>> filteredHealth = healthData.stream()
+            .filter(entry -> ((Number) entry.get("errorRate")).doubleValue() > threshold)
+            .sorted((a, b) -> Double.compare(
+                ((Number) b.get("errorRate")).doubleValue(),
+                ((Number) a.get("errorRate")).doubleValue()))
+            .toList();
+
+        if (filteredHealth.isEmpty()) {
+          System.out.println("No endpoints above the specified error rate threshold.");
+        } else {
+          System.out.println("Unhealthy endpoints above " + threshold + " error rate:");
+          filteredHealth.forEach(entry -> {
+            System.out.println(
+                entry.get("endpoint") + " | "
+                    + entry.get("hourWindow") + " | "
+                    + "total requests: " + entry.get("totalRequests") + " | "
+                    + "error count: " + entry.get("errorCount") + " | "
+                    + "error rate: " + entry.get("errorRate"));
+          });
+        }
+      }
+      scanner.close();
+      System.out.println();
 
       Map<String, Map<String, Integer>> errorsByHour = client.getErrorCountsByHour(clientId);
       client.plotTimeSeriesWithErrors(clientId, errorsByHour, hourly);
