@@ -60,4 +60,16 @@ public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
       """)
   List<Object[]> findIpsWithManyAuthErrors(@Param("threshold") int threshold,
       @Param("clientId") String clientId);
+
+  @Query("""
+    SELECT l.endpoint,
+           l.hourWindow,
+           COUNT(l),
+           SUM(CASE WHEN l.statusCode BETWEEN 400 AND 599 THEN 1 ELSE 0 END)
+    FROM LogEntry l
+    WHERE l.clientId = :clientId
+    GROUP BY l.endpoint, l.hourWindow
+    ORDER BY l.hourWindow
+    """)
+  List<Object[]> countEndpointHealthByHour(@Param("clientId") String clientId);
 }

@@ -189,4 +189,68 @@ public class LogService {
             "errorCount", row[2]))
         .toList();
   }
+
+  /**
+   * Major unit of code.
+   * Performs endpoint-level health detection for a given client.
+   *
+   * For each (endpoint, hourWindow) pair, this method:
+   * 1. Computes total requests
+   * 2. Computes total error requests (4xx + 5xx)
+   * 3. Derives an error rate
+   * 4. Flags the endpoint as UNHEALTHY if thresholds are exceeded
+   *
+   * This transforms raw log data into an actionable health signal,
+   * rather than returning simple counts.
+   *
+   * Example output:
+   * [
+   *   {
+   *     "endpoint": "/login",
+   *     "hourWindow": "2025-10-20T14:00:00",
+   *     "totalRequests": 50,
+   *     "errorCount": 20,
+   *     "errorRate": 0.4,
+   *     "status": "UNHEALTHY"
+   *   }
+   * ]
+   */
+  public List<Map<String, Object>> getEndpointHealth(String clientId) {
+
+    // Thresholds defining unhealthy behavior
+    final double ERROR_RATE_THRESHOLD = 0.30; // 30%
+    final int MIN_REQUEST_THRESHOLD = 10;
+
+    List<Object[]> rows = repo.countEndpointHealthByHour(clientId);
+
+    return rows.stream()
+            // Ignore low-traffic endpoint windows to try to avoid noisy false positives
+            .filter(row -> ((Number) row[2]).intValue() >= MIN_REQUEST_THRESHOLD)
+            .map(row -> {
+              String endpoint = (String) row[0];
+              String hourWindow = row[1].toString();
+              int totalRequests = ((Number) row[2]).intValue();
+              int errorCount = ((Number) row[3]).intValue();
+
+              double errorRate =
+                      totalRequests == 0 ? 0.0 : (double) errorCount / totalRequests;
+
+              boolean unhealthy =
+                      errorRate >= ERROR_RATE_THRESHOLD;
+
+              Map<String, Object> result = new HashMap<>();
+              result.put("endpoint", endpoint);
+              result.put("hourWindow", hourWindow);
+              result.put("totalRequests", totalRequests);
+              result.put("errorCount", errorCount);
+              result.put("errorRate",
+                      Math.round(errorRate * 100.0) / 100.0);
+              result.put("status", unhealthy ? "UNHEALTHY" : "HEALTHY");
+
+              return result;
+            })
+            // Only return the unhealthy problematic endpoints
+            .filter(m -> "UNHEALTHY".equals(m.get("status")))
+            .toList();
+  }
 }

@@ -70,4 +70,26 @@ public class AnalyticsController {
     }
     return new ResponseEntity<>(logService.getErrorCountsByHour(clientId), OK);
   }
+
+  /**
+   * Calls the internal log service's endpoint health detection function
+   * (major unit of code).
+   *
+   * Returns endpoint-level health status for a specific client, identifying
+   * endpoint-hour windows with abnormal error rates.
+   *
+   * Returns 200 OK if clientExists, 404 NOT FOUND if not.
+   *
+   * Example:
+   * GET /analytics/health/clientA
+   *
+   * @return A JSON array of unhealthy endpoint-hour windows
+   */
+  @GetMapping("/health/{clientId}")
+  public ResponseEntity<?> getClientHealth(@PathVariable String clientId) {
+    if (!logService.clientExists(clientId)) {
+      return new ResponseEntity<>("Error: clientId not found", NOT_FOUND);
+    }
+    return new ResponseEntity<>(logService.getEndpointHealth(clientId), OK);
+  }
 }
