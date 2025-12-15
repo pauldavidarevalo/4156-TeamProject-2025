@@ -426,8 +426,9 @@ public class LogProcessorClient {
    * Main method to run the client and display plots.
    */
   public static void main(String[] args) {
+    System.out.println("\n*** Welcome to Security and Health Scanner ***");
     try (Scanner scanner = new Scanner(System.in)) {
-      System.out.print("Enter Service URL (default deployed url: "
+      System.out.print("\nEnter Service URL (default deployed url: "
           + "https://logprocessor-service-445982800820.us-central1.run.app): ");
       System.out.println("Or local url: http://localhost:8080");
       String url = scanner.nextLine().trim();
@@ -461,6 +462,8 @@ public class LogProcessorClient {
       }
       System.out.println();
 
+
+
       Map<String, Integer> statusCodeCountsResult = client.getStatusCodeCounts(clientId);
       System.out.println("HTTP Status Code Counts:");
       statusCodeCountsResult.entrySet().stream()
@@ -486,6 +489,13 @@ public class LogProcessorClient {
                   + entry.get("ipAddress") + " | "
                   + "total suspicious requests: " + entry.get("errorCount"));
         });
+      }
+      if(!suspicious.isEmpty()) {
+        System.out.println("Would you like to add these IPs to your Block List? (yes/no): ");
+        String susResponse = scanner.nextLine().trim();
+        if ("yes".equalsIgnoreCase(susResponse)) {
+          System.out.println("Your Block List has been updated");
+        }
       }
       plotSuspiciousHours(hourly, suspicious);
 
@@ -520,8 +530,15 @@ public class LogProcessorClient {
           });
         }
       }
+      if(!healthData.isEmpty()) {
+        System.out.println("Would you like to add these endpoints to your Endpoints to Review List? (yes/no): ");
+        String endResponse = scanner.nextLine().trim();
+        if ("yes".equalsIgnoreCase(endResponse)) {
+          System.out.println("Your Endpoints to Review List has been updated");
+        }
+      }
       scanner.close();
-      System.out.println();
+      System.out.println("\nSecurity and Health Check Finished.");
 
       Map<String, Map<String, Integer>> errorsByHour = client.getErrorCountsByHour(clientId);
       client.plotTimeSeriesWithErrors(clientId, errorsByHour, hourly);
